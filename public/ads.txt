@@ -1,1 +1,2 @@
 google.com, pub-8537779348532569, DIRECT, f08c47fec0942fa0
+wgplayground.com, pub-4882140128475612, DIRECT, f08c47fec0942fa0
