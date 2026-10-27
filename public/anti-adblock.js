@@ -6,13 +6,13 @@
   var overlayId = "site-adblock-notice";
   var styles = `
     #site-adblock-notice{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(3,7,18,.94);backdrop-filter:blur(8px);font:16px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#f8fafc}
-    #site-adblock-notice .sab-card{width:min(100%,460px);padding:26px;border:1px solid #334155;border-radius:20px;background:#0f172a;box-shadow:0 24px 80px #0008}
-    #site-adblock-notice h2{margin:0 0 10px;font-size:1.45rem;line-height:1.2;color:#fff}
+    #site-adblock-notice .sab-card{width:min(100%,460px);padding:26px;border:2px solid #ef4444;border-radius:20px;background:#0f172a;box-shadow:0 24px 80px #0008}
+    #site-adblock-notice h2{margin:0 0 10px;font-size:1.45rem;line-height:1.2;color:#f87171}
     #site-adblock-notice p{margin:0 0 14px;color:#cbd5e1}
     #site-adblock-notice .sab-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
-    #site-adblock-notice button{border:1px solid #7c9cff;border-radius:10px;padding:11px 16px;font:inherit;font-weight:700;cursor:pointer;background:#7c9cff;color:#0b1020}
+    #site-adblock-notice button{border:1px solid #22c55e;border-radius:10px;padding:11px 16px;font:inherit;font-weight:700;cursor:pointer;background:#22c55e;color:#052e16}
     #site-adblock-notice .sab-small{font-size:.88rem;color:#94a3b8;margin-top:14px}
-    #site-adblock-notice button:focus-visible{outline:3px solid #5eead4;outline-offset:3px}
+    #site-adblock-notice button:focus-visible{outline:3px solid #86efac;outline-offset:3px}
   `;
 
   function addStyles() {
