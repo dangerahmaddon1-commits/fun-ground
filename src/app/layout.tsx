@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import "./globals.css";
+import "./account.css";
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://fun-ground.vercel.app";
 const gaId = process.env.NEXT_PUBLIC_GA_ID;
 export const metadata: Metadata = {
