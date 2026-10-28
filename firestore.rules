@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      // Profile documents are currently private to their owner. Public profile
+      // discovery is not implemented yet, even when visibility is set to public.
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.uid == userId
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() >= 1
+        && request.resource.data.displayName.size() <= 32
+        && request.resource.data.bio is string
+        && request.resource.data.bio.size() <= 160
+        && request.resource.data.visibility in ['public', 'private'];
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
