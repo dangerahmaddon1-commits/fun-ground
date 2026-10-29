@@ -21,7 +21,7 @@ Fun Ground is a responsive browser-game discovery site built with Next.js, TypeS
 
 1. Commit the contents of this project folder to the GitHub repository connected to the Fun Ground Vercel project.
 2. Use the standard Next.js build command: `npm run build`.
-3. Add the environment variables listed below in Vercel. Leave `NEXT_PUBLIC_SITE_URL` as the current Vercel URL until a custom domain is purchased and configured.
+3. Add the environment variables listed below in Vercel. The canonical site URL is set in `src/lib/site.ts`; change it only after a custom domain has been verified and assigned to this Vercel project.
 4. Deploy, then test representative game pages, search, category filtering, favorites, recently played, fullscreen, mobile layout, legal pages, `sitemap.xml`, and `robots.txt`.
 5. Enable Vercel Web Analytics in the Vercel project dashboard if needed. Google Analytics and Search Console require real IDs/verification values.
 
@@ -29,7 +29,6 @@ Fun Ground is a responsive browser-game discovery site built with Next.js, TypeS
 
 Copy `.env.example` as a reference; do not commit private credentials.
 
-- `NEXT_PUBLIC_SITE_URL`: canonical public URL. Replace with the custom domain only after DNS and Vercel domain setup are complete.
 - `NEXT_PUBLIC_GA_ID`: optional Google Analytics measurement ID. Leave blank until configured.
 - `GOOGLE_SITE_VERIFICATION`: optional Search Console verification token, not a full HTML tag.
 - `NEXT_PUBLIC_ADSENSE_ENABLED`: must remain `false` while the AdSense application/site review is pending.
@@ -55,3 +54,4 @@ The supplied dataset does not include verified play counts or publication dates.
 - Verify all embeds work and that the site has the required rights/permissions for game embeds, images, descriptions, and commercial use.
 - Set a custom domain only after purchasing it and completing DNS configuration.
 - Test the production build and the live deployment; this source bundle alone does not mean the website is already deployed or approved by an advertising provider.
+

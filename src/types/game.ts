@@ -7,7 +7,7 @@ export type Game = {
   instructions?: string;
   image?: string;
   hash?: string;
-  developer?: { slug?: string; public_name?: string };
+  developer?: { slug?: string | null; public_name?: string | null } | null;
   modes?: NamedItem[];
   languages?: NamedItem[];
   controls?: NamedItem[];
@@ -17,3 +17,4 @@ export type Game = {
   game_url?: string;
   site_url?: string;
 };
+
