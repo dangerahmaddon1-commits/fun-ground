@@ -1,12 +1,10 @@
 # Fun Ground player accounts: Firebase setup
 
-The account UI and Firebase client integration are prepared on the `feature/player-accounts` branch. The feature will not authenticate users until the Firebase web app configuration is added to Vercel and the Firebase services below are enabled.
+The account feature is prepared on the `feature/player-accounts` branch. Do not merge or deploy it until the Preview build and account flows have been tested.
 
-## 1. Add a Firebase Web App
+## 1. Vercel environment variables
 
-In Firebase Console, open project `fun-ground` (project number `658062449122`), go to Project settings → General → Your apps, and register a Web app if one does not already exist. Copy its web configuration values.
-
-Add these variables in Vercel → project `fun-ground` → Settings → Environment Variables, for Preview and Production:
+The Vercel project should have these values for Preview and Production:
 
 - `NEXT_PUBLIC_FIREBASE_API_KEY`
 - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
@@ -14,31 +12,34 @@ Add these variables in Vercel → project `fun-ground` → Settings → Environm
 - `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
 - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
 - `NEXT_PUBLIC_FIREBASE_APP_ID`
+- `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID` (optional; not required for authentication)
 
-Do not commit real credentials or private service-account keys to GitHub. Firebase web config values are intended for client apps; access must be protected by Firebase security rules.
+Firebase web configuration values are intended for client apps. Never commit a Firebase service-account private key or other server secret to the repository. Firestore security rules still need to be published in Firebase Console.
 
 ## 2. Enable sign-in providers
 
-Firebase Console → Authentication → Get started → Sign-in method:
+Firebase Console → Authentication → Sign-in method:
 - Enable Email/Password.
 - Enable Google and select a support email.
 - Authentication → Settings → Authorized domains: ensure `fun-ground.vercel.app` is listed.
 
-Email/password registration sends a verification email. Email/password sign-in is blocked until the email is verified. Google sign-in creates or reuses a Firebase account.
+Email/password registration sends a verification email. Email/password sign-in is blocked until the email is verified. The sign-in page also includes a password-reset action.
 
-## 3. Create Firestore and Storage
+## 3. Firestore and avatars
 
 - Create a Cloud Firestore database.
-- Firebase Storage is intentionally not required for the first version. Players choose from built-in emoji avatars, so no billing upgrade is needed for avatar uploads.
-- Review and publish `firestore.rules` in the Firestore Rules console. These baseline rules restrict profile access to the signed-in owner. Do not loosen them to public writes.
-- Custom avatar uploads can be added later if you decide to enable Firebase Storage after reviewing any billing requirements.
+- Firebase Storage is intentionally not required for the first version. Players choose from built-in emoji avatars; no billing upgrade or custom image upload is needed.
+- Publish `firestore.rules` in Firebase Console. The current baseline permits each signed-in user to read/write only their own profile document.
+- The public/private visibility preference is saved, but public profile browsing is not implemented. Public visibility does not make profile data readable under these rules.
 
-## 4. Deploy safely
+## 4. Preview test checklist
 
-After environment variables and Firebase services are configured, deploy a Preview first and test:
-1. Email/password signup and verification.
-2. Google sign-in.
-3. Sign-in, profile save, built-in avatar selection, and sign-out.
-4. Guest gameplay and existing catalog/navigation.
+Before merging or deploying to Production, test on a Vercel Preview:
+1. Email/password signup and verification email.
+2. Attempting sign-in before verification is blocked and prompts for verification.
+3. Password reset email.
+4. Google sign-in.
+5. Profile display name, bio, visibility, built-in avatar, save, and sign-out.
+6. Guest gameplay, catalog, mobile categories, theme toggle, and existing Monetag integration.
 
-The code currently has a password-reset control still to be completed. Public profile browsing, favorites syncing, and recently played syncing are not implemented. The profile's public/private setting is stored, but profile discovery is not enabled. Premium remains “Coming Soon”; no payment flow, tokens, or tournaments are added here.
+Favorites syncing and recently played syncing are not part of this account foundation. Premium remains “Coming Soon”; no payment flow, tokens, or tournaments are included.
