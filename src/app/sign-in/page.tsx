@@ -6,7 +6,7 @@ import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   sendEmailVerification,
-  sendSignInLinkToEmail,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
   updateProfile,
@@ -42,17 +42,20 @@ export default function SignInPage() {
     try {
       if (mode === "signup") {
         const credential = await createUserWithEmailAndPassword(auth, email.trim(), password);
-        const name = displayName.trim() || email.split("@")[0];
+        const name = displayName.trim() || email.trim().split("@")[0];
         await updateProfile(credential.user, { displayName: name });
         await saveProfile(credential.user, name);
         await sendEmailVerification(credential.user);
-        setNotice("Account created. Check your email for the verification link, then return to sign in.");
+        await auth.signOut();
+        setMode("signin");
+        setPassword("");
+        setNotice("Account created. Check your email for the verification link, then sign in.");
       } else {
         const credential = await signInWithEmailAndPassword(auth, email.trim(), password);
         if (!credential.user.emailVerified) {
           await sendEmailVerification(credential.user);
-          setNotice("Please verify your email first. We sent another verification link.");
           await auth.signOut();
+          setNotice("Please verify your email first. We sent another verification link.");
           return;
         }
         await saveProfile(credential.user);
@@ -60,6 +63,18 @@ export default function SignInPage() {
       }
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Something went wrong. Please try again.");
+    } finally { setBusy(false); }
+  }
+
+  async function resetPassword() {
+    if (!auth) { setNotice("Firebase account setup is not available yet."); return; }
+    if (!email.trim()) { setNotice("Enter your email address above first, then select Forgot password."); return; }
+    setBusy(true); setNotice("");
+    try {
+      await sendPasswordResetEmail(auth, email.trim());
+      setNotice("If an account exists for that email, Firebase will send a password-reset link. Check your inbox and spam folder.");
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Could not send the password-reset email. Please try again.");
     } finally { setBusy(false); }
   }
 
@@ -90,8 +105,8 @@ export default function SignInPage() {
         <label>Password<input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder={mode === "signup" ? "At least 6 characters" : "Your password"} required minLength={6} autoComplete={mode === "signup" ? "new-password" : "current-password"}/></label>
         <button className="primary-button account-submit" disabled={busy} type="submit">{busy ? "Please wait…" : mode === "signup" ? "Create account →" : "Sign in →"}</button>
       </form>
-      <button className="account-mode-switch" type="button" onClick={()=>{setMode(mode==="signup"?"signin":"signup");setNotice("");}}>{mode==="signup"?"Already have an account? Sign in":"New to Fun Ground? Create an account"}</button>
-      <p className="account-reset">Password reset will be available once the Firebase project setup is completed.</p>
+      {mode === "signin" && <button className="account-mode-switch" type="button" onClick={resetPassword} disabled={busy}>Forgot password?</button>}
+      <button className="account-mode-switch" type="button" onClick={()=>{setMode(mode==="signup"?"signin":"signup");setNotice("");setPassword("");}}>{mode==="signup"?"Already have an account? Sign in":"New to Fun Ground? Create an account"}</button>
       {notice && <p className="account-notice" role="status">{notice}</p>}
     </div>
   </section>;
