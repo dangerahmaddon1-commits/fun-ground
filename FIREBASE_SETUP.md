@@ -29,16 +29,16 @@ Email/password registration sends a verification email. Email/password sign-in i
 ## 3. Create Firestore and Storage
 
 - Create a Cloud Firestore database.
-- Create a Firebase Storage bucket.
-- Review and publish `firestore.rules` and `storage.rules` in the matching Firebase Rules consoles. These baseline rules restrict profile and avatar access to the signed-in owner. Do not loosen them to public writes.
-- Storage/avatar uploads are limited in the client to image files under 2 MB; server-side rules enforce size and image MIME type.
+- Firebase Storage is intentionally not required for the first version. Players choose from built-in emoji avatars, so no billing upgrade is needed for avatar uploads.
+- Review and publish `firestore.rules` in the Firestore Rules console. These baseline rules restrict profile access to the signed-in owner. Do not loosen them to public writes.
+- Custom avatar uploads can be added later if you decide to enable Firebase Storage after reviewing any billing requirements.
 
 ## 4. Deploy safely
 
 After environment variables and Firebase services are configured, deploy a Preview first and test:
 1. Email/password signup and verification.
 2. Google sign-in.
-3. Sign-in, profile save, avatar upload, and sign-out.
+3. Sign-in, profile save, built-in avatar selection, and sign-out.
 4. Guest gameplay and existing catalog/navigation.
 
 The code currently has a password-reset control still to be completed. Public profile browsing, favorites syncing, and recently played syncing are not implemented. The profile's public/private setting is stored, but profile discovery is not enabled. Premium remains “Coming Soon”; no payment flow, tokens, or tournaments are added here.
