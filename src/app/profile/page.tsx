@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { onAuthStateChanged, sendEmailVerification, signOut, User } from "firebase/auth";
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { auth, db, firebaseConfigured, storage } from "@/lib/firebase";
+import { auth, db, firebaseConfigured } from "@/lib/firebase";
 
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
@@ -23,7 +22,7 @@ export default function ProfilePage() {
       setUser(current);
       if (!current) { setLoading(false); return; }
       setDisplayName(current.displayName || "");
-      setAvatarUrl(current.photoURL || "");
+      setAvatarUrl(current.photoURL || "🎮");
       if (db) {
         try {
           const snapshot = await getDoc(doc(db, "users", current.uid));
@@ -32,29 +31,13 @@ export default function ProfilePage() {
             setDisplayName(data.displayName || current.displayName || "");
             setBio(data.bio || "");
             setVisibility(data.visibility === "private" ? "private" : "public");
-            setAvatarUrl(data.avatarUrl || current.photoURL || "");
+            setAvatarUrl(data.avatarUrl || current.photoURL || "🎮");
           }
         } catch { setNotice("Could not load the saved profile. Check Firebase Firestore rules and setup."); }
       }
       setLoading(false);
     });
   }, []);
-
-  async function uploadAvatar(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file || !user || !storage) return;
-    if (!file.type.startsWith("image/")) { setNotice("Please choose an image file."); return; }
-    if (file.size > 2 * 1024 * 1024) { setNotice("Please choose an image under 2 MB."); return; }
-    setBusy(true); setNotice("");
-    try {
-      const avatarRef = ref(storage, `avatars/${user.uid}/profile`);
-      await uploadBytes(avatarRef, file, { contentType: file.type });
-      const url = await getDownloadURL(avatarRef);
-      setAvatarUrl(url);
-      setNotice("Avatar uploaded. Save your profile to keep the change.");
-    } catch (error) { setNotice(error instanceof Error ? error.message : "Avatar upload failed."); }
-    finally { setBusy(false); event.target.value = ""; }
-  }
 
   async function saveProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -95,7 +78,7 @@ export default function ProfilePage() {
       <p className="account-subtitle">Personalize your profile. Your email is not displayed as your public name.</p>
       {!user.emailVerified && user.providerData.some(p=>p.providerId==="password") && <div className="account-setup-note"><strong>Email not verified</strong><br/><button type="button" className="account-inline-button" onClick={async()=>{try{await sendEmailVerification(user);setNotice("Verification email sent.");}catch(e){setNotice(e instanceof Error?e.message:"Could not send verification email.");}}}>Resend verification email</button></div>}
       <form className="account-form" onSubmit={saveProfile}>
-        <div className="avatar-editor"><div className="profile-avatar">{avatarUrl ? <img src={avatarUrl} alt="Your avatar"/> : <span>🎮</span>}</div><label className="avatar-upload">Upload avatar<input type="file" accept="image/*" onChange={uploadAvatar} disabled={busy}/></label><small>Image files only, up to 2 MB.</small></div>
+        <div className="avatar-editor"><div className="profile-avatar">{avatarUrl.startsWith("http") ? <img src={avatarUrl} alt="Your avatar"/> : <span>{avatarUrl || "🎮"}</span>}</div><label>Choose an avatar<select value={avatarUrl.startsWith("http") ? "🎮" : (avatarUrl || "🎮")} onChange={e=>setAvatarUrl(e.target.value)}><option value="🎮">🎮 Gamepad</option><option value="👾">👾 Alien</option><option value="🐉">🐉 Dragon</option><option value="🦊">🦊 Fox</option><option value="🐺">🐺 Wolf</option><option value="🚀">🚀 Rocket</option><option value="⚡">⚡ Lightning</option><option value="🔥">🔥 Flame</option><option value="❄️">❄️ Frost</option><option value="🌟">🌟 Star</option></select></label><small>Custom image uploads can be added later if you enable Firebase Storage.</small></div>
         <label>Display name<input value={displayName} onChange={e=>setDisplayName(e.target.value)} maxLength={32} required/></label>
         <label>Bio <span className="account-char-count">{bio.length}/160</span><textarea value={bio} onChange={e=>setBio(e.target.value.slice(0,160))} rows={4} maxLength={160} placeholder="A little about you (optional)"/></label>
         <label>Profile visibility<select value={visibility} onChange={e=>setVisibility(e.target.value as "public"|"private")}><option value="public">Public</option><option value="private">Private</option></select><small>Visibility is stored in your profile; public profile browsing is not enabled yet.</small></label>
