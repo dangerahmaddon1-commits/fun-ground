@@ -23,12 +23,26 @@ export function slugify(value: string) {
 }
 export function gamePath(game: Game) { return `/game/${encodeURIComponent(game.id)}/${slugify(game.name)}`; }
 export function categoriesFrom(games: Game[]) {
-  const map = new Map<string, string>();
-  for (const game of games) for (const cat of game.categories ?? []) {
-    if (cat?.name && cat?.slug) map.set(cat.slug, cat.name);
+  const map = new Map<string, { slug: string; name: string; count: number }>();
+  for (const game of games) {
+    const seen = new Set<string>();
+    for (const cat of game.categories ?? []) {
+      const slug = cat?.slug?.trim();
+      const name = cat?.name?.trim();
+      if (!slug || !name || seen.has(slug)) continue;
+      seen.add(slug);
+      const current = map.get(slug);
+      if (current) current.count += 1;
+      else map.set(slug, { slug, name, count: 1 });
+    }
   }
-  return [...map.entries()].map(([slug, name]) => ({ slug, name })).sort((a,b) => a.name.localeCompare(b.name));
+  return [...map.values()].sort((a,b) => a.name.localeCompare(b.name));
+}
+export function developerDisplayName(value?: string | null) {
+  const name = value?.trim();
+  return name && !/^(?:null|undefined|n\/?a|unknown)$/i.test(name) ? name : undefined;
 }
 export function plainDescription(value?: string) {
   return (value ?? "Play this free online game on Fun Ground.").replace(/\s+/g, " ").trim();
 }
+

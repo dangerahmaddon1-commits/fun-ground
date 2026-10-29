@@ -1,20 +1,66 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Assumed client data model, confirmed against sign-in and profile writes:
+    // Collection: users
+    // Document ID: Firebase Authentication UID
+    // Fields: uid (required, immutable string), displayName (1–32 chars),
+    // email (0–320 chars), bio (0–160 chars), avatarUrl (0–2048 chars),
+    // visibility ('public' or 'private'), updatedAt (timestamp).
+    // Public profile browsing is not implemented; profile documents stay private.
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function uidUnchanged(userId) {
+      return request.resource.data.uid == userId;
+    }
+
+    function uidNotModified(userId) {
+      return resource.data.uid == userId
+        && request.resource.data.uid == resource.data.uid;
+    }
+
+    function isValidUserProfile(userId) {
+      let data = request.resource.data;
+      return data.keys().hasAll([
+          'uid', 'displayName', 'email', 'bio', 'avatarUrl', 'visibility', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'uid', 'displayName', 'email', 'bio', 'avatarUrl', 'visibility', 'updatedAt'
+        ])
+        && data.uid is string
+        && data.uid == userId
+        && data.displayName is string
+        && data.displayName.size() >= 1
+        && data.displayName.size() <= 32
+        && data.email is string
+        && data.email.size() <= 320
+        && data.bio is string
+        && data.bio.size() <= 160
+        && data.avatarUrl is string
+        && data.avatarUrl.size() <= 2048
+        && data.visibility in ['public', 'private']
+        && data.updatedAt is timestamp
+        && data.updatedAt == request.time;
+    }
+
     match /users/{userId} {
-      // Profile documents are currently private to their owner. Public profile
-      // discovery is not implemented yet, even when visibility is set to public.
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow create, update: if request.auth != null
-        && request.auth.uid == userId
-        && request.resource.data.uid == userId
-        && request.resource.data.displayName is string
-        && request.resource.data.displayName.size() >= 1
-        && request.resource.data.displayName.size() <= 32
-        && request.resource.data.bio is string
-        && request.resource.data.bio.size() <= 160
-        && request.resource.data.visibility in ['public', 'private'];
-      allow delete: if request.auth != null && request.auth.uid == userId;
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId)
+        && uidUnchanged(userId)
+        && isValidUserProfile(userId);
+      allow update: if isOwner(userId)
+        && uidNotModified(userId)
+        && isValidUserProfile(userId);
+      allow delete: if isOwner(userId);
     }
   }
 }
+

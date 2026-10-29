@@ -3,16 +3,24 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Fun Ground Roadmap",
-  description: "See what's coming to Fun Ground: better game discovery, new ways to play, and competitive gaming events.",
+  description: "See what's coming to Fun Ground, including Web Version 0.2 account, profile, and game discovery improvements under development.",
   alternates: { canonical: "/roadmap" },
   openGraph: {
     title: "What's Coming to Fun Ground?",
-    description: "Explore the Fun Ground roadmap and see what we're working toward.",
+    description: "Explore the Fun Ground roadmap, including Web Version 0.2 now under development.",
     type: "website",
   },
 };
 
 const stages = [
+  {
+    status: "progress",
+    label: "Under development",
+    icon: "↗",
+    title: "Web Version 0.2",
+    description: "We're improving player accounts and game discovery for a smoother, more reliable Fun Ground experience.",
+    items: ["Complete Google sign-in and the post-login experience", "Improve player profiles and profile saving", "Make category filtering clearer and show game counts", "Refine registration, password recovery, and account usability"],
+  },
   {
     status: "available",
     label: "Available now",
@@ -59,7 +67,7 @@ export default function RoadmapPage() {
 
       <section className="roadmap-list" aria-label="Fun Ground roadmap stages">
         {stages.map((stage) => (
-          <article className="roadmap-card" data-status={stage.status} key={stage.status}>
+          <article className="roadmap-card" data-status={stage.status} key={stage.title}>
             <div className="roadmap-card-head">
               <span className="roadmap-card-icon" aria-hidden="true">{stage.icon}</span>
               <div><div className="roadmap-status">{stage.label}</div></div>
@@ -79,3 +87,4 @@ export default function RoadmapPage() {
     </article>
   );
 }
+

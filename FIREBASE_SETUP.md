@@ -1,6 +1,6 @@
 # Fun Ground player accounts: Firebase setup
 
-The account feature is prepared on the `feature/player-accounts` branch. Do not merge or deploy it until the Preview build and account flows have been tested.
+Fun Ground includes email/password and Google sign-in with player profiles. The app source uses Firebase Authentication and stores each profile at `users/{authUid}`. Review and publish the repository's `firestore.rules` separately in Firebase Console before relying on profile saves.
 
 ## 1. Vercel environment variables
 
@@ -29,7 +29,7 @@ Email/password registration sends a verification email. Email/password sign-in i
 
 - Create a Cloud Firestore database.
 - Firebase Storage is intentionally not required for the first version. Players choose from built-in emoji avatars; no billing upgrade or custom image upload is needed.
-- Publish `firestore.rules` in Firebase Console. The current baseline permits each signed-in user to read/write only their own profile document.
+- Publish the current `firestore.rules` in Firebase Console. It permits each signed-in player to read and write only the profile document whose ID matches their Auth UID; it validates the profile fields and denies collection listing.
 - The public/private visibility preference is saved, but public profile browsing is not implemented. Public visibility does not make profile data readable under these rules.
 
 ## 4. Preview test checklist
@@ -43,3 +43,4 @@ Before merging or deploying to Production, test on a Vercel Preview:
 6. Guest gameplay, catalog, mobile categories, theme toggle, and existing Monetag integration.
 
 Favorites syncing and recently played syncing are not part of this account foundation. Premium remains “Coming Soon”; no payment flow, tokens, or tournaments are included.
+
