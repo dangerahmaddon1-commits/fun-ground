@@ -3,23 +3,23 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Fun Ground Roadmap",
-  description: "See what's coming to Fun Ground, including v0.2.4 mobile, favorites, discovery, and playback improvements.",
+  description: "See the latest Fun Ground v0.2.4 release and what is planned next.",
   alternates: { canonical: "/roadmap" },
   openGraph: {
     title: "What's Coming to Fun Ground?",
-    description: "Explore the Fun Ground roadmap, including v0.2.4 optimization work now under development.",
+    description: "Explore Fun Ground v0.2.4, now released, alongside planned future improvements.",
     type: "website",
   },
 };
 
 const stages = [
   {
-    status: "progress",
-    label: "Under development",
+    status: "available",
+    label: "Available now",
     icon: "↗",
     title: "Web Version 0.2.4",
-    description: "This optimization release focuses on mobile navigation, reliable favorites and profiles, game discovery, and smoother playback.",
-    items: ["Make category navigation and search easier to use on mobile", "Keep saved favorites and profile details in sync", "Improve game discovery and playback reliability", "Reduce avoidable work while filtering the game catalog"],
+    description: "A focused optimization release for category navigation, search performance, and account reliability.",
+    items: ["Fixed the homepage category navigation target", "Reduced repeated work when searching the catalog", "Validated saved favorites and recently played data", "Synced the account header with saved player profiles"],
   },
   {
     status: "available",
