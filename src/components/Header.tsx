@@ -70,13 +70,13 @@ export default function Header() {
     <nav className="main-nav" aria-label="Main navigation"><Link href="/">Home</Link><Link href="/#categories">Categories</Link><Link href="/favorites">Favorites <span className="nav-heart">♥</span></Link></nav>
     <div className="header-actions">
       <div className="account-menu-wrap" ref={root}>
-        <button ref={trigger} type="button" className="account-header-link account-menu-trigger" aria-expanded={open} aria-haspopup="menu" onClick={() => { setOpen(v => !v); setNotice(""); }}>
+        <button ref={trigger} type="button" className={`account-header-link account-menu-trigger${!user && authLoaded ? " is-signed-out" : ""}`} aria-expanded={open} aria-haspopup="menu" onClick={() => { setOpen(v => !v); setNotice(""); }}>
           <span className="account-avatar" aria-hidden="true">{user?.photoURL ? <img src={user.photoURL} alt="" /> : (user?.displayName?.trim().charAt(0).toUpperCase() || "♟")}</span>
-          <span>{!authLoaded ? "Loading…" : user ? (user.displayName || "Player Account") : "Player Account"}</span><span className="account-chevron">⌄</span>
+          <span>{!authLoaded ? "Loading…" : user ? (user.displayName || "Player Account") : "Sign In"}</span><span className="account-chevron">⌄</span>
         </button>
         {open && <div className="account-dropdown" role="menu" aria-label="Player account menu">
           <div className="account-menu-heading">{user ? "PLAYER ACCOUNT" : "WELCOME TO FUN GROUND"}</div>
-          {!user && <><Link className="account-menu-item account-menu-primary" href="/sign-in?mode=signin" role="menuitem" onClick={() => setOpen(false)}>Sign In</Link><Link className="account-menu-item" href="/sign-in?mode=signup" role="menuitem" onClick={() => setOpen(false)}>Create Account</Link><div className="account-menu-divider" /></>}
+          {!user && <><p className="account-menu-prompt">Sign in or create a free account to access your player profile and account features.</p><Link className="account-menu-item account-menu-primary" href="/sign-in?mode=signin" role="menuitem" onClick={() => setOpen(false)}>Sign In</Link><Link className="account-menu-item" href="/sign-in?mode=signup" role="menuitem" onClick={() => setOpen(false)}>Create Account</Link><div className="account-menu-divider" /></>}
           {groups.map(group => <section key={group.title}><div className="account-menu-section-label">{group.title}</div>{group.items.map(item => item.href
             ? <Link key={item.label} className="account-menu-item" href={item.href} role="menuitem" onClick={() => setOpen(false)}>{item.label}</Link>
             : <button key={item.label} type="button" className="account-menu-item account-menu-coming" role="menuitem" onClick={() => comingSoon(item.label)}>{item.label}<span>Coming Soon</span></button>) }<div className="account-menu-divider" /></section>)}
