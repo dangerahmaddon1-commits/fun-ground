@@ -9,6 +9,18 @@ export const metadata: Metadata = {
 
 const releases = [
   {
+    version: "0.2.2",
+    status: "Released",
+    title: "Player Profiles & Account Menu",
+    summary: "A clearer player account experience, with sign-in options and a responsive account menu.",
+    items: [
+      "Added a player account dropdown with Sign In and Create Account options for signed-out visitors.",
+      "Added account links for player profiles, profile editing, and favorites.",
+      "Added Coming Soon notices for features still being developed, including recently played games, achievements, tournaments, and player statistics.",
+      "Added responsive mobile styling, account avatars, and sign-out support.",
+    ],
+  },
+  {
     version: "0.2.1",
     status: "Released",
     title: "Game Catalog Update",
@@ -17,7 +29,6 @@ const releases = [
       "Expanded the catalog to 3,086 unique game entries.",
       "Added 22 games from the newer catalog snapshot while retaining the previous entries that were absent from that snapshot.",
       "Improved favorite-heart state synchronization across duplicate game cards.",
-      "Kept AdSense inactive while the application remains pending.",
     ],
   },
 ];
@@ -46,7 +57,7 @@ export default function PastUpdatesPage() {
         ))}
       </section>
       <section className="roadmap-bottom">
-        <div><h2>See what's next.</h2><p>Check the roadmap for planned and in-progress features. Version 0.2.2 remains under development until released.</p></div>
+        <div><h2>See what's next.</h2><p>Check the roadmap for planned and in-progress features coming to Fun Ground.</p></div>
         <Link className="primary-button" href="/roadmap">View roadmap <span>→</span></Link>
       </section>
     </article>
