@@ -6,7 +6,19 @@ import type { Game } from "@/types/game";
 import { gamePath } from "@/lib/game-utils";
 export default function GameCard({ game, index = 0, categoryLabel }: { game: Game; index?: number; categoryLabel?: string }) {
   const [favorite, setFavorite] = useState(false);
-  useEffect(() => { try { setFavorite(JSON.parse(localStorage.getItem("fg-favorites") || "[]").includes(game.id)); } catch {} }, [game.id]);
+  useEffect(() => {
+    const syncFavorite = () => {
+      try { setFavorite(JSON.parse(localStorage.getItem("fg-favorites") || "[]").includes(game.id)); }
+      catch { setFavorite(false); }
+    };
+    syncFavorite();
+    window.addEventListener("fg-favorites-updated", syncFavorite);
+    window.addEventListener("storage", syncFavorite);
+    return () => {
+      window.removeEventListener("fg-favorites-updated", syncFavorite);
+      window.removeEventListener("storage", syncFavorite);
+    };
+  }, [game.id]);
   function toggle(e: MouseEvent<HTMLButtonElement>) {
     e.preventDefault(); e.stopPropagation();
     let ids: string[] = []; try { ids = JSON.parse(localStorage.getItem("fg-favorites") || "[]"); } catch {}
