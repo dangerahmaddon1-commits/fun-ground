@@ -79,6 +79,8 @@ export default function RoadmapPage() {
         ))}
       </section>
 
+      <section className="roadmap-history-link"><div><h2>Missed a past update?</h2><p>See improvements and features already released on Fun Ground.</p></div><Link className="text-button" href="/past-updates">View past updates <span>→</span></Link></section>
+
       <section className="roadmap-bottom">
         <div><h2>More fun is on the way.</h2><p>Keep exploring Fun Ground and come back to see what changes.</p></div>
         <Link className="primary-button" href="/#all-games">Explore games <span>→</span></Link>
