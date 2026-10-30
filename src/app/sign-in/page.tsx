@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
@@ -46,6 +46,11 @@ function validEmail(email: string) {
 
 export default function SignInPage() {
   const [mode, setMode] = useState<"signin" | "signup">("signup");
+
+  useEffect(() => {
+    const requestedMode = new URLSearchParams(window.location.search).get("mode");
+    if (requestedMode === "signin" || requestedMode === "signup") setMode(requestedMode);
+  }, []);
   const [resetOpen, setResetOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
