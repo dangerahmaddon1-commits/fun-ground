@@ -3,14 +3,29 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Past Updates",
-  description: "Read about released improvements and updates to Fun Ground.",
+  description: "See the current Fun Ground version and read about released improvements.",
   alternates: { canonical: "/past-updates" },
 };
 
+const currentVersion = "0.2.3";
+
 const releases = [
   {
+    version: "0.2.3",
+    status: "Current version",
+    title: "Sign-In Visibility & Release History",
+    summary: "A clearer sign-in experience for visitors and a more useful release history.",
+    items: [
+      "Made the signed-out account control clearly display Sign In in the site header.",
+      "Added a welcome prompt explaining that visitors can sign in or create a free account.",
+      "Added direct Sign In and Create Account links to the signed-out account menu.",
+      "Updated the Past Updates page to show the current version and keep the release history in order.",
+      "Removed the AdSense application-status mention from the v0.2.1 release notes.",
+    ],
+  },
+  {
     version: "0.2.2",
-    status: "Released",
+    status: "Previous release",
     title: "Player Profiles & Account Menu",
     summary: "A clearer player account experience, with sign-in options and a responsive account menu.",
     items: [
@@ -22,7 +37,7 @@ const releases = [
   },
   {
     version: "0.2.1",
-    status: "Released",
+    status: "Previous release",
     title: "Game Catalog Update",
     summary: "Expanded the Fun Ground catalog while preserving existing game entries and their embed data.",
     items: [
@@ -39,8 +54,8 @@ export default function PastUpdatesPage() {
       <section className="roadmap-hero">
         <span className="eyebrow">FUN GROUND RELEASE HISTORY</span>
         <h1>Past updates.<br /><em>Progress worth sharing.</em></h1>
-        <p>Here you'll find a record of improvements already released on Fun Ground. Features still being developed belong on the roadmap until they're released.</p>
-        <div className="roadmap-note"><span>✦</span> Released updates only</div>
+        <p>Here you'll find the current version of Fun Ground and a record of improvements already released. Features still being developed belong on the roadmap until they're released.</p>
+        <div className="roadmap-note"><span>✦</span> Current version: v{currentVersion}</div>
       </section>
       <section className="roadmap-list" aria-label="Released Fun Ground updates">
         {releases.map((release) => (
