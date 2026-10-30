@@ -47,7 +47,7 @@ export default function Header() {
       setAuthLoaded(true);
       if (!current || !db) return;
       void getDoc(doc(db, "users", current.uid)).then(snapshot => {
-        if (auth.currentUser?.uid !== current.uid || !snapshot.exists()) return;
+        if (auth?.currentUser?.uid !== current.uid || !snapshot.exists()) return;
         const data = snapshot.data();
         if (typeof data.displayName === "string") setProfileName(data.displayName);
         if (typeof data.avatarUrl === "string") setProfileAvatar(data.avatarUrl);
