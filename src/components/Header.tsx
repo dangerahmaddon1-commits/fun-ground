@@ -76,7 +76,7 @@ export default function Header() {
         </button>
         {open && <div className="account-dropdown" role="menu" aria-label="Player account menu">
           <div className="account-menu-heading">{user ? "PLAYER ACCOUNT" : "WELCOME TO FUN GROUND"}</div>
-          {!user && <><Link className="account-menu-item account-menu-primary" href="/sign-in" role="menuitem" onClick={() => setOpen(false)}>Sign In / Create Account</Link><div className="account-menu-divider" /></>}
+          {!user && <><Link className="account-menu-item account-menu-primary" href="/sign-in?mode=signin" role="menuitem" onClick={() => setOpen(false)}>Sign In</Link><Link className="account-menu-item" href="/sign-in?mode=signup" role="menuitem" onClick={() => setOpen(false)}>Create Account</Link><div className="account-menu-divider" /></>}
           {groups.map(group => <section key={group.title}><div className="account-menu-section-label">{group.title}</div>{group.items.map(item => item.href
             ? <Link key={item.label} className="account-menu-item" href={item.href} role="menuitem" onClick={() => setOpen(false)}>{item.label}</Link>
             : <button key={item.label} type="button" className="account-menu-item account-menu-coming" role="menuitem" onClick={() => comingSoon(item.label)}>{item.label}<span>Coming Soon</span></button>) }<div className="account-menu-divider" /></section>)}
