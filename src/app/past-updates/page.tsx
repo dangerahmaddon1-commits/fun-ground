@@ -7,12 +7,25 @@ export const metadata: Metadata = {
   alternates: { canonical: "/past-updates" },
 };
 
-const currentVersion = "0.2.3";
+const currentVersion = "0.2.4";
 
 const releases = [
   {
-    version: "0.2.3",
+    version: "0.2.4",
     status: "Current version",
+    title: "Optimization & Reliability",
+    summary: "A focused polish release for category navigation, search performance, and account reliability.",
+    items: [
+      "Fixed the homepage category links so they reach the category section.",
+      "Avoided repeating search-query normalization for every catalog entry.",
+      "Validated saved favorite and recently played data before rendering.",
+      "Aligned account-header names and avatars with saved player profiles.",
+      "Preserved the existing game catalog and embed records.",
+    ],
+  },
+  {
+    version: "0.2.3",
+    status: "Previous release",
     title: "Sign-In Visibility & Release History",
     summary: "A clearer sign-in experience for visitors and a more useful release history.",
     items: [
