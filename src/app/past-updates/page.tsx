@@ -20,7 +20,6 @@ const releases = [
       "Added a welcome prompt explaining that visitors can sign in or create a free account.",
       "Added direct Sign In and Create Account links to the signed-out account menu.",
       "Updated the Past Updates page to show the current version and keep the release history in order.",
-      "Removed the AdSense application-status mention from the v0.2.1 release notes.",
     ],
   },
   {
