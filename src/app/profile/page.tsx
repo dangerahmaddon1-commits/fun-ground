@@ -104,6 +104,7 @@ export default function ProfilePage() {
       }, { merge: true });
       applyProfile(saved);
       setSavedProfile(saved);
+      window.dispatchEvent(new CustomEvent("fg-profile-updated", { detail: { displayName: saved.displayName, avatarUrl: saved.avatarUrl } }));
       setNotice("Profile saved.");
     } catch (error) {
       setNotice(errorCode(error) === "permission-denied"

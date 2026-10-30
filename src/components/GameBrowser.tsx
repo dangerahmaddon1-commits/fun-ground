@@ -5,12 +5,12 @@ import GameCard from "@/components/GameCard";
 type Category = { slug: string; name: string; count?: number };
 export default function GameBrowser({ games, categories, title = "All games", subtitle = "Find your next favorite.", initialCategory = "all" }: { games: Game[]; categories: Category[]; title?: string; subtitle?: string; initialCategory?: string }) {
   const [query, setQuery] = useState(""); const [category, setCategory] = useState(initialCategory); const [visible, setVisible] = useState(24); const [sort, setSort] = useState("featured");
+  const normalizedQuery = query.trim().toLowerCase();
   const filtered = useMemo(() => games.filter(g => {
-    const q = query.trim().toLowerCase();
-    const matchesText = !q || [g.name, g.description, ...(g.tags ?? []).map(t => t.name), ...(g.categories ?? []).map(c => c.name)].join(" ").toLowerCase().includes(q);
+    const matchesText = !normalizedQuery || [g.name, g.description, ...(g.tags ?? []).map(t => t.name), ...(g.categories ?? []).map(c => c.name)].join(" ").toLowerCase().includes(normalizedQuery);
     const matchesCategory = category === "all" || (g.categories ?? []).some(c => c.slug === category);
     return matchesText && matchesCategory;
-  }), [games, query, category]);
+  }), [games, normalizedQuery, category]);
   const selectedCategoryLabel = categories.find(c => c.slug === category)?.name;
   const sorted = useMemo(() => { const copy = [...filtered]; if (sort === "name-asc") copy.sort((a,b) => a.name.localeCompare(b.name)); else if (sort === "name-desc") copy.sort((a,b) => b.name.localeCompare(a.name)); return copy; }, [filtered, sort]);
   return <section className="catalog-section" id="all-games"><div className="section-heading"><div><span className="eyebrow">THE GAME LIBRARY</span><h2>{title}</h2><p>{subtitle}</p></div><span className="result-count">{filtered.length.toLocaleString()} games</span></div>
