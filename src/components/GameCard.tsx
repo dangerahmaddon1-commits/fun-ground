@@ -3,13 +3,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { MouseEvent } from "react";
 import type { Game } from "@/types/game";
-import { gamePath } from "@/lib/game-utils";
+import { gamePath, readStoredIdList } from "@/lib/game-utils";
 export default function GameCard({ game, index = 0, categoryLabel }: { game: Game; index?: number; categoryLabel?: string }) {
   const [favorite, setFavorite] = useState(false);
   useEffect(() => {
     const syncFavorite = () => {
-      try { setFavorite(JSON.parse(localStorage.getItem("fg-favorites") || "[]").includes(game.id)); }
-      catch { setFavorite(false); }
+      setFavorite(readStoredIdList("fg-favorites").includes(game.id));
     };
     syncFavorite();
     window.addEventListener("fg-favorites-updated", syncFavorite);
@@ -21,9 +20,10 @@ export default function GameCard({ game, index = 0, categoryLabel }: { game: Gam
   }, [game.id]);
   function toggle(e: MouseEvent<HTMLButtonElement>) {
     e.preventDefault(); e.stopPropagation();
-    let ids: string[] = []; try { ids = JSON.parse(localStorage.getItem("fg-favorites") || "[]"); } catch {}
+    let ids = readStoredIdList("fg-favorites");
     ids = ids.includes(game.id) ? ids.filter(id => id !== game.id) : [...ids, game.id];
-    localStorage.setItem("fg-favorites", JSON.stringify(ids)); setFavorite(ids.includes(game.id));
+    try { localStorage.setItem("fg-favorites", JSON.stringify(ids)); } catch { return; }
+    setFavorite(ids.includes(game.id));
     window.dispatchEvent(new Event("fg-favorites-updated"));
   }
   return <article className="game-card"><Link href={gamePath(game)} className="game-card-link" aria-label={`Play ${game.name}`}>

@@ -3,7 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { onAuthStateChanged, signOut, type User } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 
 const groups = [
   { title: "PLAYER", items: [{ label: "My Profile", href: "/profile" }, { label: "Edit Profile", href: "/profile" }, { label: "My Favorites", href: "/favorites" }, { label: "Recently Played", soon: true }] },
@@ -14,6 +15,8 @@ const groups = [
 export default function Header() {
   const [dark, setDark] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+  const [profileName, setProfileName] = useState("");
+  const [profileAvatar, setProfileAvatar] = useState("");
   const [authLoaded, setAuthLoaded] = useState(false);
   const [open, setOpen] = useState(false);
   const [notice, setNotice] = useState("");
@@ -27,8 +30,33 @@ export default function Header() {
     document.documentElement.dataset.theme = initial ? "dark" : "light";
   }, []);
   useEffect(() => {
-    if (!auth) { setAuthLoaded(true); return; }
-    return onAuthStateChanged(auth, current => { setUser(current); setAuthLoaded(true); });
+    const profileUpdated = (event: Event) => {
+      const detail = (event as CustomEvent<{ displayName?: unknown; avatarUrl?: unknown }>).detail;
+      if (typeof detail?.displayName === "string") setProfileName(detail.displayName);
+      if (typeof detail?.avatarUrl === "string") setProfileAvatar(detail.avatarUrl);
+    };
+    window.addEventListener("fg-profile-updated", profileUpdated);
+    if (!auth) {
+      setAuthLoaded(true);
+      return () => window.removeEventListener("fg-profile-updated", profileUpdated);
+    }
+    const unsubscribe = onAuthStateChanged(auth, current => {
+      setUser(current);
+      setProfileName(current?.displayName || "");
+      setProfileAvatar(current?.photoURL || "");
+      setAuthLoaded(true);
+      if (!current || !db) return;
+      void getDoc(doc(db, "users", current.uid)).then(snapshot => {
+        if (auth.currentUser?.uid !== current.uid || !snapshot.exists()) return;
+        const data = snapshot.data();
+        if (typeof data.displayName === "string") setProfileName(data.displayName);
+        if (typeof data.avatarUrl === "string") setProfileAvatar(data.avatarUrl);
+      }).catch(() => {});
+    });
+    return () => {
+      unsubscribe();
+      window.removeEventListener("fg-profile-updated", profileUpdated);
+    };
   }, []);
   useEffect(() => {
     if (!open) return;
@@ -71,8 +99,8 @@ export default function Header() {
     <div className="header-actions">
       <div className="account-menu-wrap" ref={root}>
         <button ref={trigger} type="button" className={`account-header-link account-menu-trigger${!user && authLoaded ? " is-signed-out" : ""}`} aria-expanded={open} aria-haspopup="menu" onClick={() => { setOpen(v => !v); setNotice(""); }}>
-          <span className="account-avatar" aria-hidden="true">{user?.photoURL ? <img src={user.photoURL} alt="" /> : (user?.displayName?.trim().charAt(0).toUpperCase() || "♟")}</span>
-          <span>{!authLoaded ? "Loading…" : user ? (user.displayName || "Player Account") : "Sign In"}</span><span className="account-chevron">⌄</span>
+          <span className="account-avatar" aria-hidden="true">{profileAvatar.startsWith("http") ? <img src={profileAvatar} alt="" /> : (profileAvatar || profileName.trim().charAt(0).toUpperCase() || "♟")}</span>
+          <span>{!authLoaded ? "Loading…" : user ? (profileName || "Player Account") : "Sign In"}</span><span className="account-chevron">⌄</span>
         </button>
         {open && <div className="account-dropdown" role="menu" aria-label="Player account menu">
           <div className="account-menu-heading">{user ? "PLAYER ACCOUNT" : "WELCOME TO FUN GROUND"}</div>

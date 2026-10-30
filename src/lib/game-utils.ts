@@ -9,3 +9,12 @@ export function slugify(value: string) {
 export function gamePath(game: Game) {
   return `/game/${encodeURIComponent(game.id)}/${slugify(game.name)}`;
 }
+
+export function readStoredIdList(key: string): string[] {
+  try {
+    const value = JSON.parse(localStorage.getItem(key) || "[]");
+    return Array.isArray(value) ? value.filter((id): id is string => typeof id === "string") : [];
+  } catch {
+    return [];
+  }
+}
