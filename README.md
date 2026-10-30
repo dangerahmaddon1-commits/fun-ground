@@ -5,9 +5,9 @@ Fun Ground is a responsive browser-game discovery site built with Next.js, TypeS
 ## Catalog and validation
 
 - `data/games.json` is the locally bundled catalog extracted from the user-provided dataset.
-- The catalog contains **3,064 games with 3,064 unique, non-empty IDs**. All entries retain their source embed URL, image URL, description, category/tag metadata, and related fields.
+- The catalog contains **3,086 games with 3,086 unique, non-empty IDs**. Version 0.2.1 adds 22 records from the supplied WG snapshot while retaining all existing records, including 13 IDs absent from that snapshot. All entries retain their source embed URL, image URL, description, category/tag metadata, and related fields.
 - The app does not fetch the WG Playground API during a Vercel build.
-- Run `npm run check:catalog` to verify the expected catalog size, unique IDs, names, embed URLs, images, and descriptions before deployment.
+- Run `npm run check:catalog` to verify the expected catalog size, unique IDs, the 22 added IDs, the 13 preserved legacy IDs, new embed integrity, names, images, and descriptions before deployment.
 
 ## Local development
 
