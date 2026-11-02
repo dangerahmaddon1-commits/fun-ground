@@ -42,8 +42,23 @@ jobs:
               console.log(JSON.stringify({ package: name, severity: item.severity, direct: item.isDirect, range: item.range, via: item.via, fixAvailable: item.fixAvailable }));
             }
           '
+      - name: Audit production dependency vulnerabilities
+        shell: bash
+        run: |
+          npm audit --omit=dev --json > "$RUNNER_TEMP/npm-audit-production.json" || true
+          node -e '
+            const fs = require("fs");
+            const report = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + "/npm-audit-production.json", "utf8"));
+            const v = report.metadata?.vulnerabilities || {};
+            console.log("Production dependency audit summary:", JSON.stringify(v));
+            for (const [name, item] of Object.entries(report.vulnerabilities || {})) {
+              console.log(JSON.stringify({ package: name, severity: item.severity, direct: item.isDirect, range: item.range, via: item.via, fixAvailable: item.fixAvailable }));
+            }
+          '
       - name: Validate game catalog
         run: npm run check:catalog
+      - name: Discover multiplayer catalogue candidates (not approved integrations)
+        run: npm run report:multiplayer-candidates
       - name: TypeScript check
         run: npx tsc --noEmit
       - name: Production build
