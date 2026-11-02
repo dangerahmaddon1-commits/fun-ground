@@ -201,11 +201,13 @@ export async function POST(
         ...(completed ? { result, completedAt: FieldValue.serverTimestamp() } : {}),
         updatedAt: FieldValue.serverTimestamp(),
       });
-      if (completed && (match.mode === "quick" || match.mode === "ranked")) {
+      if (completed) {
         for (const playerUid of players) {
-          transaction.delete(
-            db.collection("chessQueues").doc(match.mode).collection("players").doc(playerUid),
-          );
+          for (const queueMode of ["quick", "ranked"] as const) {
+            transaction.delete(
+              db.collection("chessQueues").doc(queueMode).collection("players").doc(playerUid),
+            );
+          }
         }
       }
 
