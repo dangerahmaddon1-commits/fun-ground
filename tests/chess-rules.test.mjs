@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import assert from "node:assert/strict";
 import { Chess } from "chess.js";
+import { isSameChessMoveRequest } from "../src/lib/chess/move-idempotency.mjs";
 
 test("standard starting position has 20 legal moves", () => {
   const game = new Chess();
@@ -84,4 +85,20 @@ test("reloading PGN preserves move history and threefold repetition", () => {
 test("detects a claimable fifty-move draw", () => {
   const game = new Chess("7k/8/8/8/8/8/8/R6K w - - 100 51");
   assert.equal(game.isDrawByFiftyMoves(), true);
+});
+
+
+test("accepts an exact retry of a persisted Chess move", () => {
+  assert.equal(isSameChessMoveRequest(
+    { uid: "player-1", from: "e2", to: "e4", promotion: null },
+    "player-1",
+    { from: "e2", to: "e4" },
+  ), true);
+});
+
+test("rejects reuse of a Chess move ID for a different move", () => {
+  const previous = { uid: "player-1", from: "e2", to: "e4", promotion: null };
+  assert.equal(isSameChessMoveRequest(previous, "player-1", { from: "e2", to: "e3" }), false);
+  assert.equal(isSameChessMoveRequest(previous, "player-2", { from: "e2", to: "e4" }), false);
+  assert.equal(isSameChessMoveRequest(previous, "player-1", { from: "e2", to: "e4", promotion: "q" }), false);
 });
