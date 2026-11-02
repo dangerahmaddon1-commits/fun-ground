@@ -95,7 +95,7 @@ export default function Header() {
 
   return <header className="site-header"><div className="header-inner">
     <Link className="brand" href="/" aria-label="Fun Ground home"><Image src="/fun-ground-logo.svg" alt="Fun Ground gaming logo" width={48} height={48} priority/><span>fun<span className="brand-accent">ground</span><small>PLAY. DISCOVER. REPEAT.</small></span></Link>
-    <nav className="main-nav" aria-label="Main navigation"><Link href="/">Home</Link><Link href="/#categories">Categories</Link><Link href="/favorites">Favorites <span className="nav-heart">♥</span></Link></nav>
+    <nav className="main-nav" aria-label="Main navigation"><Link href="/">Home</Link><Link href="/chess">Chess</Link><Link href="/#categories">Categories</Link><Link href="/favorites">Favorites <span className="nav-heart">♥</span></Link></nav>
     <div className="header-actions">
       <div className="account-menu-wrap" ref={root}>
         <button ref={trigger} type="button" className={`account-header-link account-menu-trigger${!user && authLoaded ? " is-signed-out" : ""}`} aria-expanded={open} aria-haspopup="menu" onClick={() => { setOpen(v => !v); setNotice(""); }}>
