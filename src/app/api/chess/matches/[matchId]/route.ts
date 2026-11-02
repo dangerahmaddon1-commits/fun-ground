@@ -59,6 +59,9 @@ export async function GET(
       moveCount: match?.moveCount ?? 0,
       lastMove: match?.lastMove ?? null,
       result: match?.result ?? null,
+      rematchStatus: match?.rematchStatus ?? null,
+      rematchRequestedBy: Array.isArray(match?.rematchRequestedBy) ? match.rematchRequestedBy : [],
+      rematchMatchId: match?.rematchMatchId ?? null,
       updatedAt: match?.updatedAt?.toMillis?.() ?? null,
     });
   } catch (error) {
