@@ -21,7 +21,7 @@ The server-side competitive API uses the Firebase Admin SDK. It is deliberately 
 
 - Set `FUN_GROUND_MATCHMAKING_ENABLED=true` only after the Admin credentials, Firestore rules, and queue API have been verified in a non-production preview.
 - The game capability registry in `src/lib/competitive/capabilities.ts` is intentionally empty. No game can enter a queue until a real multiplayer integration is individually reviewed and added with evidence.
-- Ranked additionally requires `FUN_GROUND_RANKED_ENABLED=true` and a server-verifiable result integration for that game.
+- Ranked additionally requires `FUN_GROUND_RANKED_ENABLED=true`, a Firebase-verified email on the player account, and a server-verifiable result integration for that game. Email verification is the current baseline for the verified-player gate; any stronger identity verification policy must be defined before ranked launch.
 - The queue creates match records with `resultStatus: unverified`; it does not declare a winner or issue rewards.
 - Client Firestore access to queue and match records is explicitly denied. All access must go through authenticated server routes.
 
