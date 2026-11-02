@@ -136,3 +136,13 @@
 .chess-coming-card p{font-size:10px;line-height:1.7;color:var(--muted);margin:0}
 @media(max-width:850px){.chess-layout{grid-template-columns:1fr}.chess-side-panel{padding:4px 0}.chess-board{max-width:620px}.chess-side-panel h1{font-size:36px}}
 @media(max-width:520px){.chess-page{padding-left:12px;padding-right:12px}.chess-board-wrap{padding:8px}.chess-board{border-width:3px}.chess-piece{font-size:clamp(23px,9vw,42px)}.chess-rank-label{top:2px;left:2px}.chess-file-label{bottom:2px;right:2px}.chess-board-topline{padding:0 11px;font-size:9px}.chess-info-card,.chess-coming-card{padding:14px}}
+
+
+.chess-online-card{margin-top:18px}
+.chess-online-card .chess-mode-switch{margin:12px 0}
+.chess-online-card>p{font-size:.9rem;line-height:1.55;color:var(--muted)}
+.chess-online-card .primary-button,.chess-online-card .secondary-button{width:100%;justify-content:center;margin-top:8px}
+.chess-queue-timer{font-variant-numeric:tabular-nums;font-weight:800;letter-spacing:.04em}
+.chess-fallback-offer{margin-top:14px;padding:14px;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+.chess-fallback-offer strong{display:block;margin-bottom:6px}
+.chess-fallback-offer p{font-size:.88rem;line-height:1.5;color:var(--muted)}
