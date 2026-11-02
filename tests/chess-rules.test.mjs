@@ -29,7 +29,7 @@ test("supports en passant captures", () => {
 });
 
 test("supports pawn promotion", () => {
-  const game = new Chess("8/P7/8/8/8/8/7k/7K w - - 0 1");
+  const game = new Chess("8/P7/8/8/8/7k/8/7K w - - 0 1");
   game.move({ from: "a7", to: "a8", promotion: "q" });
   assert.deepEqual(game.get("a8"), { color: "w", type: "q" });
 });
