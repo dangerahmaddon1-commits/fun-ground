@@ -85,3 +85,54 @@
 .account-menu-trigger.is-signed-out{background:var(--accent);border-color:var(--accent);color:#10120d;font-weight:800}
 .account-menu-trigger.is-signed-out .account-avatar{background:#10120d;color:var(--accent)}
 @media(max-width:420px){.account-menu-trigger.is-signed-out{width:auto;min-width:78px;height:36px;border-radius:999px;padding:6px 10px;justify-content:center}.account-menu-trigger.is-signed-out>span:nth-child(2){display:inline;max-width:none}.account-menu-trigger.is-signed-out .account-avatar{display:none}}
+
+/* Fun Ground Chess — responsive board and game controls */
+.chess-page{padding-top:26px}
+.chess-layout{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(280px,.75fr);gap:25px;align-items:start}
+.chess-main-panel,.chess-side-panel{min-width:0}
+.chess-main-panel{border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow:hidden}
+.chess-board-topline{height:52px;padding:0 17px;display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);font-size:10px;font-weight:800;letter-spacing:1.1px;color:var(--muted)}
+.chess-board-topline>div{display:flex;align-items:center;gap:9px}
+.chess-live-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px #b6ff5570}
+.chess-opponent{letter-spacing:0;font-weight:600}
+.chess-board-wrap{padding:clamp(10px,2.2vw,22px);background:radial-gradient(ellipse at 50% 50%,#222538,#11131b)}
+.chess-board{width:100%;max-width:660px;aspect-ratio:1;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));margin:auto;border:5px solid #252a39;border-radius:5px;overflow:hidden;box-shadow:0 15px 40px #0005}
+.chess-square{position:relative;display:grid;place-items:center;min-width:0;min-height:0;border:0;padding:0}
+.chess-square.is-light{background:#e7dfcb;color:#20232d}
+.chess-square.is-dark{background:#76916f;color:#20232d}
+.chess-square:disabled{opacity:1;cursor:default}
+.chess-square.is-selected{background:#d4c45c}
+.chess-square.is-target:after{content:"";position:absolute;inset:0;border:3px solid #c8f46d;pointer-events:none}
+.chess-piece{font-family:"DejaVu Sans",serif;font-size:clamp(25px,5.1vw,58px);line-height:1;z-index:1;user-select:none}
+.white-piece{color:#fffdf5;text-shadow:0 2px 2px #202020,1px 0 1px #333,-1px 0 1px #333}
+.black-piece{color:#20232b;text-shadow:0 1px 1px #fff8}
+.chess-rank-label,.chess-file-label{position:absolute;font-size:clamp(7px,1vw,10px);font-weight:800;opacity:.7;line-height:1;z-index:2}
+.chess-rank-label{top:4px;left:4px}
+.chess-file-label{bottom:3px;right:4px}
+.chess-target-dot{width:24%;height:24%;border-radius:50%;background:#1b302c55}
+.chess-capture-ring{position:absolute;inset:4%;border:4px solid #c8f46d;border-radius:50%}
+.chess-status{min-height:53px;display:flex;align-items:center;gap:10px;padding:10px 17px;font-size:12px;color:var(--muted);border-top:1px solid var(--line)}
+.chess-status-icon{font-size:17px;color:var(--accent)}
+.chess-status.is-finished{color:var(--text);font-weight:800}
+.chess-side-panel{padding:10px 4px}
+.chess-side-panel h1{font:700 clamp(31px,4vw,44px)/1.05 "Space Grotesk",sans-serif;letter-spacing:-2px;margin:11px 0}
+.chess-side-panel h1 em{font-style:normal;color:var(--accent)}
+.chess-intro{font-size:13px;color:var(--muted);line-height:1.8;margin:0 0 21px}
+.chess-mode-switch{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:5px;border:1px solid var(--line);background:var(--panel);border-radius:11px}
+.chess-mode-switch button{border:0;background:transparent;color:var(--muted);padding:10px;border-radius:7px;font-size:12px;font-weight:800}
+.chess-mode-switch button.active{background:var(--accent);color:#111}
+.chess-setting-label{display:block;font-size:11px;font-weight:800;color:var(--muted);margin:19px 0 7px}
+.chess-difficulty{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--text);font-size:12px}
+.chess-actions{display:flex;gap:9px;margin-top:15px;flex-wrap:wrap}
+.chess-actions button{flex:1;min-width:110px}
+.chess-actions button:disabled{opacity:.4;cursor:not-allowed}
+.chess-notice{font-size:11px;color:var(--pink)}
+.chess-info-card,.chess-coming-card{margin-top:19px;padding:17px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.chess-info-card h2{font:700 15px "Space Grotesk";margin:0 0 9px}
+.chess-info-card ul{padding-left:17px;margin:0;color:var(--muted);font-size:11px;line-height:1.8}
+.chess-coming-card{background:linear-gradient(135deg,#171b25,#171827)}
+.chess-coming-card>span{font-size:8px;letter-spacing:1.5px;font-weight:800;color:var(--purple)}
+.chess-coming-card strong{display:block;font:700 16px "Space Grotesk";margin:5px 0}
+.chess-coming-card p{font-size:10px;line-height:1.7;color:var(--muted);margin:0}
+@media(max-width:850px){.chess-layout{grid-template-columns:1fr}.chess-side-panel{padding:4px 0}.chess-board{max-width:620px}.chess-side-panel h1{font-size:36px}}
+@media(max-width:520px){.chess-page{padding-left:12px;padding-right:12px}.chess-board-wrap{padding:8px}.chess-board{border-width:3px}.chess-piece{font-size:clamp(23px,9vw,42px)}.chess-rank-label{top:2px;left:2px}.chess-file-label{bottom:2px;right:2px}.chess-board-topline{padding:0 11px;font-size:9px}.chess-info-card,.chess-coming-card{padding:14px}}
