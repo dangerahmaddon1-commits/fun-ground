@@ -36,7 +36,7 @@ jobs:
             const v = report.metadata?.vulnerabilities || {};
             console.log("Dependency audit summary:", JSON.stringify(v));
             for (const [name, item] of Object.entries(report.vulnerabilities || {})) {
-              console.log(JSON.stringify({ package: name, severity: item.severity, direct: item.isDirect, range: item.range, fixAvailable: item.fixAvailable }));
+              console.log(JSON.stringify({ package: name, severity: item.severity, direct: item.isDirect, range: item.range, via: item.via, fixAvailable: item.fixAvailable }));
             }
           '
       - name: Validate game catalog
