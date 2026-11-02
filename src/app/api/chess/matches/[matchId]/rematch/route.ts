@@ -105,7 +105,7 @@ export async function POST(
       return { status: "matched" as const, matchId: rematchRef.id };
     });
 
-    if ("error" in outcome) return errorResponse(outcome.error, outcome.status);
+    if ("error" in outcome) return errorResponse(outcome.error ?? "Could not request a rematch.", outcome.status ?? 500);
     return NextResponse.json(outcome);
   } catch (error) {
     console.error("Chess rematch request error", error);
