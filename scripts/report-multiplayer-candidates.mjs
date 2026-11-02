@@ -8,8 +8,10 @@ const games = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.games) ? pa
 const metadataMultiplayerTerms = /multiplayer|co[ -]?op|cooperative|\bversus\b|\bpvp\b|2[ -]?player|two[ -]?player/i;
 const descriptionMultiplayerTerms = /multiplayer|co[ -]?op|cooperative|\bpvp\b|2[ -]?player|two[ -]?player|\bversus\s+(?:another\s+)?(?:player|opponent|friend)\b/i;
 const weakTerms = /\bonline\b|local play/i;
-const onlineTerms = /\bonline\b|\binternet\b|remote|cross[- ]platform/i;
-const localTerms = /\blocal\b|same device|same screen|split[- ]screen|couch|hotseat|pass[- ]and[- ]play/i;
+// Only explicit remote-opponent language qualifies for the online-indicated group.
+const remoteOpponentTerms = /online multiplayer|online opponent|opponent online|players online|online players|play against other players|play against players|against an online opponent|real[- ]time pvp|cross[- ]platform multiplayer|remote multiplayer/i;
+const onlineMetadataHintTerms = /online|internet|remote|cross[- ]platform/i;
+const localTerms = /\blocal\b|same device|one device|same screen|split[- ]screen|couch|hotseat|pass[- ]and[- ]play/i;
 const negativeDescriptionTerms = /\b(?:no|not|without|isn't|is not|doesn't|does not|cannot|can't)\b[^.!?]{0,45}\b(?:multiplayer|co[ -]?op|cooperative|versus|pvp|2[ -]?player|two[ -]?player)\b|\b(?:multiplayer|co[ -]?op|cooperative|versus|pvp|2[ -]?player|two[ -]?player)\b[^.!?]{0,40}\b(?:not supported|unsupported|unavailable|isn't|is not|doesn't|does not)\b|\b(?:single[ -]?player only|solo only)\b/i;
 
 function asArray(value) {
@@ -56,7 +58,8 @@ for (const game of games) {
       .map((item) => typeof item === "string" ? item : item?.name)
       .filter((value) => typeof value === "string")
       .join(" ");
-    const onlineSignal = onlineTerms.test(description) || onlineTerms.test(metadataText);
+    const onlineDescriptionEvidence = remoteOpponentTerms.test(description);
+    const onlineMetadataHint = onlineMetadataHintTerms.test(metadataText);
     const localSignal = localTerms.test(description) || localTerms.test(metadataText);
     const candidate = {
       id: game.id,
@@ -66,10 +69,13 @@ for (const game of games) {
       descriptionMatch: Boolean(evidence),
       descriptionEvidence: evidence,
       descriptionContradicts,
+      onlineDescriptionEvidence,
+      onlineMetadataHint,
+      localEvidence: localSignal,
     };
 
-    if (onlineSignal && !localSignal) onlineCandidates.push(candidate);
-    else if (localSignal && !onlineSignal) localCandidates.push(candidate);
+    if (onlineDescriptionEvidence && !localSignal) onlineCandidates.push(candidate);
+    else if (localSignal && !onlineDescriptionEvidence) localCandidates.push(candidate);
     else needsVerification.push(candidate);
   } else if (weakLabels.length > 0) {
     weakHints.push({ id: game.id, name: game.name, labels: weakLabels });
@@ -77,7 +83,7 @@ for (const game of games) {
 }
 
 console.log(JSON.stringify({
-  purpose: "Discovery only. Online signals, local signals and multiplayer terms are triage hints, not proof of permission, transport, authoritative game state or server-verifiable results.",
+  purpose: "Discovery only. The online-indicated group requires explicit remote-opponent wording in the description. Metadata-only online labels remain unverified hints. No group proves permission, a Fun Ground join interface, authoritative game state or server-verifiable results.",
   catalogueGames: games.length,
   onlineCandidateCount: onlineCandidates.length,
   localCandidateCount: localCandidates.length,
