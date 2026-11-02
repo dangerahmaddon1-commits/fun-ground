@@ -154,7 +154,13 @@ export default function ChessGame() {
           <button type="button" className="secondary-button" onClick={undoTurn} disabled={!pgn || thinking}>Undo turn</button>
         </div>
         {notice && <p className="chess-notice" role="status">{notice}</p>}
-        <ChessMatchmaking />
+        <ChessMatchmaking onAiFallback={(queueMode) => {
+          setMode("casual");
+          restart();
+          setNotice(queueMode === "ranked"
+            ? "You are now playing a fresh unranked AI game. No rank or rewards are affected."
+            : "You are now playing a fresh casual AI game.");
+        }} />
         <div className="chess-info-card">
           <h2>How to play</h2>
           <ul>
