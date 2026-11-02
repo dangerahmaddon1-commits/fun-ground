@@ -3,6 +3,7 @@ import { Chess, type Square } from "chess.js";
 import { FieldValue } from "firebase-admin/firestore";
 import { getAdminServices } from "@/lib/firebase-admin";
 import { competitiveFeatures } from "@/lib/competitive/config";
+import { isSameChessMoveRequest } from "@/lib/chess/move-idempotency.mjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -80,10 +81,11 @@ export async function POST(
         if (!Array.isArray(current?.playerIds) || !current.playerIds.includes(uid)) {
           return { error: "You are not a player in this Chess match.", status: 403 as const };
         }
-        const sameRequest = previous?.uid === uid
-          && previous?.from === body.from
-          && previous?.to === body.to
-          && (previous?.promotion ?? null) === (body.promotion ?? null);
+        const sameRequest = isSameChessMoveRequest(previous, uid, {
+          from: body.from as string,
+          to: body.to as string,
+          promotion: body.promotion as string | undefined,
+        });
         if (!sameRequest) {
           return { error: "This move ID was already used for a different move.", status: 409 as const };
         }
