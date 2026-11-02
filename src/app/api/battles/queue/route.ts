@@ -146,7 +146,13 @@ export async function GET(request: NextRequest) {
     if (data?.status === "matched" && typeof data.matchId === "string") {
       return NextResponse.json({ status: "matched", matchId: data.matchId });
     }
-    if (data?.status === "waiting") return NextResponse.json({ status: "queued" });
+    if (data?.status === "waiting") {
+      const expiresAt = data.expiresAt as Timestamp | undefined;
+      if (expiresAt instanceof Timestamp && expiresAt.toMillis() > Date.now()) {
+        return NextResponse.json({ status: "queued" });
+      }
+      await snapshot.ref.delete();
+    }
     return NextResponse.json({ status: "not_queued" });
   } catch (error) {
     console.error("Matchmaking status error", error);
@@ -165,11 +171,15 @@ export async function DELETE(request: NextRequest) {
   try {
     const { db } = getAdminServices();
     const ref = db.collection(queuePath(body.gameId, body.mode)).doc(uid);
-    const snapshot = await ref.get();
-    if (!snapshot.exists) return NextResponse.json({ status: "not_queued" });
-    if (snapshot.data()?.status === "matched") return jsonError("A match has already been created; it cannot be cancelled from the queue.", 409);
-    await ref.delete();
-    return NextResponse.json({ status: "cancelled" });
+    const outcome = await db.runTransaction(async (transaction) => {
+      const snapshot = await transaction.get(ref);
+      if (!snapshot.exists) return "not_queued" as const;
+      if (snapshot.data()?.status === "matched") return "matched" as const;
+      transaction.delete(ref);
+      return "cancelled" as const;
+    });
+    if (outcome === "matched") return jsonError("A match has already been created; it cannot be cancelled from the queue.", 409);
+    return NextResponse.json({ status: outcome });
   } catch (error) {
     console.error("Matchmaking cancel error", error);
     return jsonError("Could not leave matchmaking right now.", 503);
