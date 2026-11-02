@@ -89,10 +89,7 @@ export async function POST(
       const queueRefs = playerIds.flatMap(playerUid => (["quick", "ranked"] as const).map(mode =>
         db.collection("chessQueues").doc(mode).collection("players").doc(playerUid),
       ));
-      const [lockSnapshots, queueSnapshots] = await Promise.all([
-        Promise.all(lockRefs.map(lockRef => transaction.get(lockRef))),
-        Promise.all(queueRefs.map(queueRef => transaction.get(queueRef))),
-      ]);
+      const lockSnapshots = await Promise.all(lockRefs.map(lockRef => transaction.get(lockRef)));
 
       const lockMatchRefs = lockSnapshots.map(lockSnapshot => {
         const lockedMatchId = lockSnapshot.data()?.matchId;
