@@ -173,7 +173,7 @@ export default function OnlineChessMatch({ matchId }: { matchId: string }) {
       <div className="chess-main-panel">
         <div className="chess-board-topline">
           <div><span className="chess-live-dot" /> ONLINE MATCH</div>
-          <span className="chess-opponent">♟ &nbsp; " + opponent + " is your opponent</span>
+          <span className="chess-opponent">♟ &nbsp; {opponent} is your opponent</span>
         </div>
         <div className="chess-board-wrap">
           <div className="chess-board" role="grid" aria-label="Online chess board">
