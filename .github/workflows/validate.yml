@@ -30,7 +30,7 @@ jobs:
       - name: Apply compatible dependency security patches
         run: npm audit fix --package-lock-only --ignore-scripts
       - name: Upload resolved lockfile for release review
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: package-lock-review
           path: package-lock.json
