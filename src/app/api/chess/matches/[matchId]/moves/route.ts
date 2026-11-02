@@ -73,7 +73,7 @@ export async function POST(
         transaction.get(matchRef),
         transaction.get(moveRef),
       ]);
-      if (!matchSnapshot.exists) return { error: "Chess match not found.", status: 404 as const };
+      if (!matchSnapshot.exists || matchSnapshot.data()?.gameId !== "chess") return { error: "Chess match not found.", status: 404 as const };
       if (priorMove.exists) {
         const current = matchSnapshot.data();
         if (!Array.isArray(current?.playerIds) || !current.playerIds.includes(uid)) {
