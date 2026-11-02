@@ -8,7 +8,7 @@ import { auth } from "@/lib/firebase";
 type Mode = "quick" | "ranked";
 type QueueStatus = "idle" | "queued" | "busy";
 
-export default function ChessMatchmaking() {
+export default function ChessMatchmaking({ onAiFallback }: { onAiFallback: (mode: Mode) => void }) {
   const [user, setUser] = useState<User | null>(null);
   const [authLoaded, setAuthLoaded] = useState(false);
   const [mode, setMode] = useState<Mode>("quick");
@@ -167,9 +167,10 @@ export default function ChessMatchmaking() {
 
   async function switchToAi() {
     if (!await leaveQueue()) return;
+    onAiFallback(mode);
     setNotice(mode === "ranked"
-      ? "Switched to an unranked AI game. This game will not affect your rank or rewards."
-      : "Switched to a casual AI game.");
+      ? "Switched to a fresh unranked AI game. This game will not affect your rank or rewards."
+      : "Switched to a fresh casual AI game.");
   }
 
   const fallbackAfter = mode === "quick" ? 180 : 300;
