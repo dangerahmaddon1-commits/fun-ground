@@ -146,3 +146,5 @@
 .chess-fallback-offer{margin-top:14px;padding:14px;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
 .chess-fallback-offer strong{display:block;margin-bottom:6px}
 .chess-fallback-offer p{font-size:.88rem;line-height:1.5;color:var(--muted)}
+
+.chess-rematch-actions{margin-top:12px}.chess-rematch-actions .primary-button{width:100%;justify-content:center}.chess-rematch-actions p{font-size:.82rem;line-height:1.5;color:var(--muted);margin:8px 0 0}
