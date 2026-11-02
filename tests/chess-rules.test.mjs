@@ -18,13 +18,13 @@ test("supports castling and moves the rook", () => {
   for (const move of ["e4", "e5", "Nf3", "Nc6", "Bc4", "Nf6", "O-O"]) game.move(move);
   assert.equal(game.get("g1")?.type, "k");
   assert.equal(game.get("f1")?.type, "r");
-  assert.equal(game.get("h1"), null);
+  assert.equal(game.get("h1"), undefined);
 });
 
 test("supports en passant captures", () => {
   const game = new Chess();
   for (const move of ["e4", "a6", "e5", "d5", "exd6"]) game.move(move);
-  assert.equal(game.get("d5"), null);
+  assert.equal(game.get("d5"), undefined);
   assert.deepEqual(game.get("d6"), { color: "w", type: "p" });
 });
 
