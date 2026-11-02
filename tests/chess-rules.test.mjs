@@ -134,3 +134,35 @@ test("Chess rematch can replace stale locks but rejects invalid player pairs", (
   assert.deepEqual(getRematchLockDecision(["white", "black"], []), { status: "ready" });
   assert.deepEqual(getRematchLockDecision(["white", "white"], []), { status: "invalid" });
 });
+
+
+test("starter AI returns only legal Black moves and does not mutate the position", async () => {
+  const { chooseAiMove } = await import("../src/lib/chess/ai.mjs");
+  const game = new Chess();
+  game.move("e4");
+  const before = game.fen();
+  for (const difficulty of ["easy", "medium", "hard"]) {
+    const move = chooseAiMove(game, difficulty, () => 0);
+    assert.ok(move);
+    assert.ok(game.moves({ verbose: true }).some(legal => legal.from === move.from && legal.to === move.to));
+    assert.equal(game.fen(), before);
+  }
+});
+
+test("starter AI refuses to move for White or after the game has ended", async () => {
+  const { chooseAiMove } = await import("../src/lib/chess/ai.mjs");
+  assert.equal(chooseAiMove(new Chess(), "medium", () => 0), null);
+  const finished = new Chess();
+  for (const move of ["f3", "e5", "g4", "Qh4#"]) finished.move(move);
+  assert.equal(chooseAiMove(finished, "hard", () => 0), null);
+});
+
+test("Advanced starter AI takes an immediate checkmate when available", async () => {
+  const { chooseAiMove } = await import("../src/lib/chess/ai.mjs");
+  const game = new Chess();
+  for (const move of ["f3", "e5", "g4"]) game.move(move);
+  const move = chooseAiMove(game, "hard", () => 0);
+  assert.ok(move);
+  game.move({ from: move.from, to: move.to, ...(move.promotion ? { promotion: move.promotion } : {}) });
+  assert.equal(game.isCheckmate(), true);
+});
