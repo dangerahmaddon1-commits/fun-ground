@@ -72,7 +72,10 @@ export default function ChessMatchmaking({ onAiFallback }: { onAiFallback: (mode
   useEffect(() => {
     if (!user || status !== "queued") return;
     let active = true;
+    let requestInFlight = false;
     const checkQueue = async () => {
+      if (!active || requestInFlight) return;
+      requestInFlight = true;
       try {
         const token = await user.getIdToken();
         const response = await fetch(`/api/chess/queue?mode=${mode}`, {
@@ -92,10 +95,12 @@ export default function ChessMatchmaking({ onAiFallback }: { onAiFallback: (mode
         }
       } catch {
         if (active) setNotice("Connection interrupted. We will keep checking while this page stays open.");
+      } finally {
+        requestInFlight = false;
       }
     };
     void checkQueue();
-    const timer = window.setInterval(() => void checkQueue(), 2500);
+    const timer = window.setInterval(() => { void checkQueue(); }, 2500);
     return () => {
       active = false;
       window.clearInterval(timer);
