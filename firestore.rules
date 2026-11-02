@@ -59,6 +59,13 @@ service cloud.firestore {
       }
     }
 
+    match /playerActivity/{userId} {
+      allow read, write: if false;
+      match /sessions/{sessionId} {
+        allow read, write: if false;
+      }
+    }
+
     match /matches/{matchId} {
       allow read, write: if false;
     }
