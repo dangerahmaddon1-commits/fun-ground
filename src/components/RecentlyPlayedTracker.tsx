@@ -32,11 +32,9 @@ export default function RecentlyPlayedTracker({ id }: { id: string }) {
     };
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        finishSession();
-        token = null;
-        return;
-      }
+      finishSession();
+      token = null;
+      if (!user) return;
       try {
         const idToken = await user.getIdToken();
         if (stopped || auth?.currentUser?.uid !== user.uid) return;
