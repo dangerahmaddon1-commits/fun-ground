@@ -6,11 +6,23 @@ import { getFirestore } from "firebase-admin/firestore";
 function getServiceAccount(): { projectId: string; clientEmail: string; privateKey: string } {
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
   if (!raw) throw new Error("Firebase Admin is not configured.");
-  const parsed = JSON.parse(raw) as { projectId?: string; clientEmail?: string; privateKey?: string };
-  if (!parsed.projectId || !parsed.clientEmail || !parsed.privateKey) {
+
+  const parsed = JSON.parse(raw) as {
+    projectId?: string;
+    clientEmail?: string;
+    privateKey?: string;
+    project_id?: string;
+    client_email?: string;
+    private_key?: string;
+  };
+  const projectId = parsed.projectId ?? parsed.project_id;
+  const clientEmail = parsed.clientEmail ?? parsed.client_email;
+  const privateKey = parsed.privateKey ?? parsed.private_key;
+
+  if (!projectId || !clientEmail || !privateKey) {
     throw new Error("Firebase Admin service account is incomplete.");
   }
-  return { projectId: parsed.projectId, clientEmail: parsed.clientEmail, privateKey: parsed.privateKey };
+  return { projectId, clientEmail, privateKey: privateKey.replace(/\\n/g, "\n") };
 }
 
 export function getAdminServices() {
