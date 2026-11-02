@@ -76,10 +76,25 @@ export async function POST(
       if (!matchSnapshot.exists || matchSnapshot.data()?.gameId !== "chess") return { error: "Chess match not found.", status: 404 as const };
       if (priorMove.exists) {
         const current = matchSnapshot.data();
+        const previous = priorMove.data();
         if (!Array.isArray(current?.playerIds) || !current.playerIds.includes(uid)) {
           return { error: "You are not a player in this Chess match.", status: 403 as const };
         }
-        return { duplicate: true as const, fen: current?.fen, pgn: current?.pgn ?? "", status: current?.status };
+        const sameRequest = previous?.uid === uid
+          && previous?.from === body.from
+          && previous?.to === body.to
+          && (previous?.promotion ?? null) === (body.promotion ?? null);
+        if (!sameRequest) {
+          return { error: "This move ID was already used for a different move.", status: 409 as const };
+        }
+        return {
+          duplicate: true as const,
+          fen: current?.fen,
+          pgn: current?.pgn ?? "",
+          status: current?.status,
+          turnUid: current?.turnUid ?? null,
+          result: current?.result ?? null,
+        };
       }
 
       const match = matchSnapshot.data();
