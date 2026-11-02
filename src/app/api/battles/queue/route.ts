@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 
 type MatchMode = "quick" | "ranked";
 const QUEUE_TTL_MS = 90_000;
+const MATCHMAKING_POST_COOLDOWN_MS = 3_000;
 
 async function authenticatedUser(request: NextRequest): Promise<{ uid: string; emailVerified: boolean } | null> {
   const header = request.headers.get("authorization") ?? "";
@@ -65,11 +66,28 @@ export async function POST(request: NextRequest) {
 
   try {
     const { db } = getAdminServices();
+    const now = Date.now();
+    const rateLimitRef = db.collection("matchmakingRateLimits").doc(uid);
+    const allowed = await db.runTransaction(async (transaction) => {
+      const snapshot = await transaction.get(rateLimitRef);
+      const lastRequestAt = snapshot.data()?.lastRequestAt as Timestamp | undefined;
+      if (
+        lastRequestAt instanceof Timestamp &&
+        now - lastRequestAt.toMillis() < MATCHMAKING_POST_COOLDOWN_MS
+      ) {
+        return false;
+      }
+      transaction.set(rateLimitRef, { lastRequestAt: Timestamp.fromMillis(now) });
+      return true;
+    });
+    if (!allowed) {
+      return jsonError("Please wait a moment before trying matchmaking again.", 429);
+    }
+
     const players = db.collection(queuePath(body.gameId, body.mode));
     const ownRef = players.doc(uid);
     const candidates = await players.where("status", "==", "waiting").limit(20).get();
     const candidate = candidates.docs.find((doc) => doc.id !== uid);
-    const now = Date.now();
     const matchRef = db.collection("matches").doc();
 
     const result = await db.runTransaction(async (transaction) => {
