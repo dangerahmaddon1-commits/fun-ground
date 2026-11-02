@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Chess, type Square } from "chess.js";
+import ChessMatchmaking from "@/components/ChessMatchmaking";
 
 type Mode = "casual" | "training";
 type Difficulty = "easy" | "medium" | "hard";
@@ -205,6 +206,7 @@ export default function ChessGame() {
           <button type="button" className="secondary-button" onClick={undoTurn} disabled={!pgn || thinking}>Undo turn</button>
         </div>
         {notice && <p className="chess-notice" role="status">{notice}</p>}
+        <ChessMatchmaking />
         <div className="chess-info-card">
           <h2>How to play</h2>
           <ul>
