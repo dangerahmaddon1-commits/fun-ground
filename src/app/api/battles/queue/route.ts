@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
 
     const result = await db.runTransaction(async (transaction) => {
       const own = await transaction.get(ownRef);
-      let expiredMatchRef: FirebaseFirestore.DocumentReference | null = null;
+      let expiredMatchId: string | null = null;
       if (own.exists) {
         const data = own.data();
         if (data?.status === "matched" && typeof data.matchId === "string") {
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
             return { status: "matched" as const, matchId: data.matchId };
           }
           if (existingMatch.exists && matchData?.status === "matched") {
-            expiredMatchRef = existingMatchRef;
+            expiredMatchId = data.matchId;
           }
         } else if (data?.status === "waiting") {
           const expiresAt = data.expiresAt as Timestamp | undefined;
@@ -133,8 +133,8 @@ export async function POST(request: NextRequest) {
           expiresAt.toMillis() > now;
 
         if (fresh) {
-          if (expiredMatchRef) {
-            transaction.update(expiredMatchRef, {
+          if (expiredMatchId) {
+            transaction.update(db.collection("matches").doc(expiredMatchId), {
               status: "expired",
               expiredAt: FieldValue.serverTimestamp(),
             });
@@ -161,8 +161,8 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      if (expiredMatchRef) {
-        transaction.update(expiredMatchRef, {
+      if (expiredMatchId) {
+        transaction.update(db.collection("matches").doc(expiredMatchId), {
           status: "expired",
           expiredAt: FieldValue.serverTimestamp(),
         });
