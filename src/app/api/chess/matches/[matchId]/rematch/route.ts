@@ -46,11 +46,11 @@ export async function POST(
     const outcome = await db.runTransaction(async (transaction) => {
       const snapshot = await transaction.get(matchRef);
       if (!snapshot.exists || snapshot.data()?.gameId !== "chess") {
-        return { error: "Chess match not found.", status: 404 as const };
+        return { error: "Chess match not found.", httpStatus: 404 as const };
       }
       const match = snapshot.data();
       if (match?.status !== "completed") {
-        return { error: "A rematch can be requested after the current game finishes.", status: 409 as const };
+        return { error: "A rematch can be requested after the current game finishes.", httpStatus: 409 as const };
       }
       if (typeof match.rematchMatchId === "string") {
         return { status: "matched" as const, matchId: match.rematchMatchId };
@@ -58,7 +58,7 @@ export async function POST(
 
       const decision = getRematchRequestDecision(match.playerIds, match.rematchRequestedBy, uid);
       if (decision.status === "forbidden") {
-        return { error: "You are not a player in this Chess match.", status: 403 as const };
+        return { error: "You are not a player in this Chess match.", httpStatus: 403 as const };
       }
       if (decision.status === "waiting") {
         transaction.update(matchRef, {
@@ -75,7 +75,7 @@ export async function POST(
         || typeof match.blackUid !== "string"
         || match.whiteUid === match.blackUid
       ) {
-        return { error: "The saved Chess match cannot be replayed.", status: 409 as const };
+        return { error: "The saved Chess match cannot be replayed.", httpStatus: 409 as const };
       }
 
       const nextWhiteUid = match.blackUid;
@@ -105,7 +105,7 @@ export async function POST(
       return { status: "matched" as const, matchId: rematchRef.id };
     });
 
-    if ("error" in outcome) return errorResponse(outcome.error ?? "Could not request a rematch.", outcome.status ?? 500);
+    if ("error" in outcome) return errorResponse(outcome.error ?? "Could not request a rematch.", outcome.httpStatus ?? 500);
     return NextResponse.json(outcome);
   } catch (error) {
     console.error("Chess rematch request error", error);
