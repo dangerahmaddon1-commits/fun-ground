@@ -163,6 +163,18 @@ export async function POST(
         ? { winnerUid, reason, outcome: winnerUid ? "win" : "draw" }
         : null;
 
+      if (completed) {
+        const activeLockRefs = [match.whiteUid, match.blackUid].map(playerUid =>
+          db.collection("chessActivePlayers").doc(playerUid),
+        );
+        const activeLocks = await Promise.all(activeLockRefs.map(lockRef => transaction.get(lockRef)));
+        activeLocks.forEach((lockSnapshot, index) => {
+          if (lockSnapshot.data()?.matchId === matchId) {
+            transaction.delete(activeLockRefs[index]);
+          }
+        });
+      }
+
       transaction.create(moveRef, {
         clientMoveId: body.clientMoveId,
         uid,
