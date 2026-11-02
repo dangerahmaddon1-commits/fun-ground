@@ -70,17 +70,21 @@ export default function OnlineChessMatch({ matchId }: { matchId: string }) {
   useEffect(() => {
     if (!user) return;
     let active = true;
+    let requestInFlight = false;
     const load = async () => {
+      if (!active || requestInFlight) return;
+      requestInFlight = true;
       try {
         await refresh(user);
       } catch (error) {
         if (active) setNotice(error instanceof Error ? error.message : "Could not load this match.");
       } finally {
+        requestInFlight = false;
         if (active) setLoading(false);
       }
     };
     void load();
-    const timer = window.setInterval(() => { if (active) void load(); }, 1800);
+    const timer = window.setInterval(() => { void load(); }, 1800);
     return () => {
       active = false;
       window.clearInterval(timer);
