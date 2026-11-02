@@ -120,7 +120,7 @@ export async function POST(
         return { error: "That move is not legal.", status: 400 as const };
       }
 
-      const completed = chess.isGameOver();
+      const completed = chess.isGameOver({ claimDraw: true });
       const winnerUid = chess.isCheckmate() ? uid : null;
       const reason = chess.isCheckmate()
         ? "checkmate"
@@ -130,8 +130,10 @@ export async function POST(
             ? "threefold-repetition"
             : chess.isInsufficientMaterial()
               ? "insufficient-material"
-              : chess.isDraw()
-                ? "draw"
+              : chess.isDrawByFiftyMoves()
+                ? "fifty-move-rule"
+                : chess.isDraw()
+                  ? "draw"
                 : null;
       const nextUid = chess.turn() === "w" ? match.whiteUid : match.blackUid;
       const result = completed
