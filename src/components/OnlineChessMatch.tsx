@@ -79,6 +79,10 @@ export default function OnlineChessMatch({ matchId }: { matchId: string }) {
     };
   }, [user, refresh]);
 
+  useEffect(() => {
+    setSelected(null);
+  }, [match?.fen]);
+
   const game = useMemo(() => {
     try { return new Chess(match?.fen); }
     catch { return new Chess(); }
