@@ -11,6 +11,12 @@ The server-side competitive API uses the Firebase Admin SDK. It is deliberately 
 5. Never commit the JSON, paste it into GitHub, or expose it in a `NEXT_PUBLIC_*` variable.
 6. Keep all `FUN_GROUND_*` feature flags set to `false` until the relevant integration is reviewed and tested.
 
+## Activity tracking requirements
+
+- Set `FUN_GROUND_ACTIVITY_TRACKING_ENABLED=true` only after the Admin credentials and private Firestore rules are verified in Preview.
+- Set `NEXT_PUBLIC_FG_ACTIVITY_TRACKING_ENABLED=true` only as a client-side request hint. It does not enable the feature; the server flag remains authoritative.
+- Activity sessions store only the authenticated UID, game ID, server start/end timestamps and a capped duration. They do not record scores, winners or rewards.
+
 ## Matchmaking requirements
 
 - Set `FUN_GROUND_MATCHMAKING_ENABLED=true` only after the Admin credentials, Firestore rules, and queue API have been verified in a non-production preview.
