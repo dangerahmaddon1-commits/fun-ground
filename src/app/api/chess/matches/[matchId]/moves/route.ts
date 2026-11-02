@@ -189,6 +189,13 @@ export async function POST(
         ...(completed ? { result, completedAt: FieldValue.serverTimestamp() } : {}),
         updatedAt: FieldValue.serverTimestamp(),
       });
+      if (completed && (match.mode === "quick" || match.mode === "ranked")) {
+        for (const playerUid of players) {
+          transaction.delete(
+            db.collection("chessQueues").doc(match.mode).collection("players").doc(playerUid),
+          );
+        }
+      }
 
       return {
         duplicate: false as const,
