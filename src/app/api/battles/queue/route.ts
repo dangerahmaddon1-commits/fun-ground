@@ -9,6 +9,9 @@ export const dynamic = "force-dynamic";
 
 type MatchMode = "quick" | "ranked";
 const QUEUE_TTL_MS = 90_000;
+// Temporary reservation expiry prevents a matched queue record from blocking
+// the player forever before match lifecycle/reconnect support is implemented.
+const MATCH_RESERVATION_TTL_MS = 90_000;
 const MATCHMAKING_POST_COOLDOWN_MS = 3_000;
 
 async function authenticatedUser(request: NextRequest): Promise<{ uid: string; emailVerified: boolean } | null> {
@@ -95,13 +98,31 @@ export async function POST(request: NextRequest) {
       if (own.exists) {
         const data = own.data();
         if (data?.status === "matched" && typeof data.matchId === "string") {
-          return { status: "matched" as const, matchId: data.matchId };
-        }
-        if (data?.status === "waiting") {
+          const existingMatchRef = db.collection("matches").doc(data.matchId);
+          const existingMatch = await transaction.get(existingMatchRef);
+          const matchData = existingMatch.data();
+          const matchExpiresAt = matchData?.expiresAt as Timestamp | undefined;
+          if (
+            existingMatch.exists &&
+            matchData?.status === "matched" &&
+            matchExpiresAt instanceof Timestamp &&
+            matchExpiresAt.toMillis() > now
+          ) {
+            return { status: "matched" as const, matchId: data.matchId };
+          }
+          if (existingMatch.exists && matchData?.status === "matched") {
+            transaction.update(existingMatchRef, {
+              status: "expired",
+              expiredAt: FieldValue.serverTimestamp(),
+            });
+          }
+          transaction.delete(ownRef);
+        } else if (data?.status === "waiting") {
           const expiresAt = data.expiresAt as Timestamp | undefined;
           if (expiresAt instanceof Timestamp && expiresAt.toMillis() > now) {
             return { status: "queued" as const };
           }
+          transaction.delete(ownRef);
         }
       }
 
@@ -123,6 +144,7 @@ export async function POST(request: NextRequest) {
             status: "matched",
             resultStatus: "unverified",
             createdAt: FieldValue.serverTimestamp(),
+            expiresAt: Timestamp.fromMillis(now + MATCH_RESERVATION_TTL_MS),
           });
           transaction.update(candidateRef, { status: "matched", matchId: matchRef.id, matchedAt: FieldValue.serverTimestamp() });
           transaction.set(ownRef, {
@@ -168,12 +190,26 @@ export async function GET(request: NextRequest) {
       const snapshot = await transaction.get(ref);
       if (!snapshot.exists) return { status: "not_queued" as const };
       const data = snapshot.data();
+      const now = Date.now();
       if (data?.status === "matched" && typeof data.matchId === "string") {
-        return { status: "matched" as const, matchId: data.matchId };
-      }
-      if (data?.status === "waiting") {
+        const matchRef = db.collection("matches").doc(data.matchId);
+        const matchSnapshot = await transaction.get(matchRef);
+        const matchData = matchSnapshot.data();
+        const expiresAt = matchData?.expiresAt as Timestamp | undefined;
+        if (
+          matchSnapshot.exists &&
+          matchData?.status === "matched" &&
+          expiresAt instanceof Timestamp &&
+          expiresAt.toMillis() > now
+        ) {
+          return { status: "matched" as const, matchId: data.matchId };
+        }
+        if (matchSnapshot.exists && matchData?.status === "matched") {
+          transaction.update(matchRef, { status: "expired", expiredAt: FieldValue.serverTimestamp() });
+        }
+      } else if (data?.status === "waiting") {
         const expiresAt = data.expiresAt as Timestamp | undefined;
-        if (expiresAt instanceof Timestamp && expiresAt.toMillis() > Date.now()) {
+        if (expiresAt instanceof Timestamp && expiresAt.toMillis() > now) {
           return { status: "queued" as const };
         }
       }
@@ -202,7 +238,22 @@ export async function DELETE(request: NextRequest) {
     const outcome = await db.runTransaction(async (transaction) => {
       const snapshot = await transaction.get(ref);
       if (!snapshot.exists) return "not_queued" as const;
-      if (snapshot.data()?.status === "matched") return "matched" as const;
+      const data = snapshot.data();
+      if (data?.status === "matched" && typeof data.matchId === "string") {
+        const matchRef = db.collection("matches").doc(data.matchId);
+        const matchSnapshot = await transaction.get(matchRef);
+        const matchData = matchSnapshot.data();
+        const expiresAt = matchData?.expiresAt as Timestamp | undefined;
+        if (
+          matchSnapshot.exists &&
+          matchData?.status === "matched" &&
+          expiresAt instanceof Timestamp &&
+          expiresAt.toMillis() > Date.now()
+        ) return "matched" as const;
+        if (matchSnapshot.exists && matchData?.status === "matched") {
+          transaction.update(matchRef, { status: "expired", expiredAt: FieldValue.serverTimestamp() });
+        }
+      }
       transaction.delete(ref);
       return "cancelled" as const;
     });
