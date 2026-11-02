@@ -10,14 +10,14 @@ export const dynamic = "force-dynamic";
 type MatchMode = "quick" | "ranked";
 const QUEUE_TTL_MS = 90_000;
 
-async function authenticatedUid(request: NextRequest): Promise<string | null> {
+async function authenticatedUser(request: NextRequest): Promise<{ uid: string; emailVerified: boolean } | null> {
   const header = request.headers.get("authorization") ?? "";
   const token = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
   if (!token) return null;
   try {
     const { auth } = getAdminServices();
     const decoded = await auth.verifyIdToken(token, true);
-    return decoded.uid;
+    return { uid: decoded.uid, emailVerified: decoded.email_verified === true };
   } catch {
     return null;
   }
@@ -41,8 +41,9 @@ function queuePath(gameId: string, mode: MatchMode) {
 
 export async function POST(request: NextRequest) {
   if (!competitiveFeatures.matchmaking) return jsonError("Matchmaking is not enabled.", 503);
-  const uid = await authenticatedUid(request);
-  if (!uid) return jsonError("Sign in to join matchmaking.", 401);
+  const user = await authenticatedUser(request);
+  if (!user) return jsonError("Sign in to join matchmaking.", 401);
+  const { uid } = user;
 
   let body: { gameId?: unknown; mode?: unknown };
   try { body = await request.json(); } catch { return jsonError("Invalid request body.", 400); }
@@ -53,6 +54,9 @@ export async function POST(request: NextRequest) {
   const capabilities = getCapabilities({ id: body.gameId });
   if (!capabilities.includes("multiplayer-supported")) {
     return jsonError("This game has not been approved for Fun Ground multiplayer.", 409);
+  }
+  if (body.mode === "ranked" && !user.emailVerified) {
+    return jsonError("Verify your account email before entering Ranked Match.", 403);
   }
   if (body.mode === "ranked" &&
       (!competitiveFeatures.rankedMatches || !capabilities.includes("results-verified"))) {
@@ -132,28 +136,33 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   if (!competitiveFeatures.matchmaking) return jsonError("Matchmaking is not enabled.", 503);
-  const uid = await authenticatedUid(request);
-  if (!uid) return jsonError("Sign in to check matchmaking.", 401);
+  const user = await authenticatedUser(request);
+  if (!user) return jsonError("Sign in to check matchmaking.", 401);
+  const { uid } = user;
   const gameId = request.nextUrl.searchParams.get("gameId");
   const mode = request.nextUrl.searchParams.get("mode");
   if (!validGameId(gameId) || !validMode(mode)) return jsonError("A valid gameId and match mode are required.", 400);
 
   try {
     const { db } = getAdminServices();
-    const snapshot = await db.collection(queuePath(gameId, mode)).doc(uid).get();
-    if (!snapshot.exists) return NextResponse.json({ status: "not_queued" });
-    const data = snapshot.data();
-    if (data?.status === "matched" && typeof data.matchId === "string") {
-      return NextResponse.json({ status: "matched", matchId: data.matchId });
-    }
-    if (data?.status === "waiting") {
-      const expiresAt = data.expiresAt as Timestamp | undefined;
-      if (expiresAt instanceof Timestamp && expiresAt.toMillis() > Date.now()) {
-        return NextResponse.json({ status: "queued" });
+    const ref = db.collection(queuePath(gameId, mode)).doc(uid);
+    const result = await db.runTransaction(async (transaction) => {
+      const snapshot = await transaction.get(ref);
+      if (!snapshot.exists) return { status: "not_queued" as const };
+      const data = snapshot.data();
+      if (data?.status === "matched" && typeof data.matchId === "string") {
+        return { status: "matched" as const, matchId: data.matchId };
       }
-      await snapshot.ref.delete();
-    }
-    return NextResponse.json({ status: "not_queued" });
+      if (data?.status === "waiting") {
+        const expiresAt = data.expiresAt as Timestamp | undefined;
+        if (expiresAt instanceof Timestamp && expiresAt.toMillis() > Date.now()) {
+          return { status: "queued" as const };
+        }
+      }
+      transaction.delete(ref);
+      return { status: "not_queued" as const };
+    });
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Matchmaking status error", error);
     return jsonError("Matchmaking status is temporarily unavailable.", 503);
@@ -162,8 +171,9 @@ export async function GET(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   if (!competitiveFeatures.matchmaking) return jsonError("Matchmaking is not enabled.", 503);
-  const uid = await authenticatedUid(request);
-  if (!uid) return jsonError("Sign in to leave matchmaking.", 401);
+  const user = await authenticatedUser(request);
+  if (!user) return jsonError("Sign in to leave matchmaking.", 401);
+  const { uid } = user;
   let body: { gameId?: unknown; mode?: unknown };
   try { body = await request.json(); } catch { return jsonError("Invalid request body.", 400); }
   if (!validGameId(body.gameId) || !validMode(body.mode)) return jsonError("A valid gameId and match mode are required.", 400);
