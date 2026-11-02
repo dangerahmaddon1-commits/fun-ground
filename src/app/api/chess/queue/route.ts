@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
             return { status: "matched" as const, matchId: ownData.matchId };
           }
         }
-        if (isFresh(ownData, now)) return { status: "queued" as const };
+        if (isFresh(ownData, now)) return { status: "queued" as const, queuedAt: ownData?.createdAt instanceof Timestamp ? ownData.createdAt.toMillis() : now };
       }
 
       if (candidate) {
@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
         createdAt: Timestamp.fromMillis(now),
         expiresAt: Timestamp.fromMillis(now + QUEUE_TTL_MS),
       });
-      return { status: "queued" as const };
+      return { status: "queued" as const, queuedAt: now };
     });
 
     return NextResponse.json(result, { status: result.status === "matched" ? 200 : 202 });
@@ -174,7 +174,7 @@ export async function GET(request: NextRequest) {
           return { status: "matched" as const, matchId: data.matchId };
         }
       }
-      if (isFresh(data, Date.now())) return { status: "queued" as const };
+      if (isFresh(data, Date.now())) return { status: "queued" as const, queuedAt: data?.createdAt instanceof Timestamp ? data.createdAt.toMillis() : Date.now() };
       transaction.delete(ref);
       return { status: "not_queued" as const };
     });
