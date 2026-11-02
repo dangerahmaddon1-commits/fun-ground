@@ -80,60 +80,103 @@ export async function POST(request: NextRequest) {
     const initialFen = new Chess().fen();
 
     const result = await db.runTransaction(async (transaction) => {
-      const ownSnapshot = await transaction.get(ownRef);
-      if (ownSnapshot.exists) {
-        const ownData = ownSnapshot.data();
-        if (ownData?.status === "matched" && typeof ownData.matchId === "string") {
-          const existingMatchRef = db.collection("matches").doc(ownData.matchId);
-          const existingMatch = await transaction.get(existingMatchRef);
-          if (existingMatch.exists && existingMatch.data()?.status === "active") {
-            return { status: "matched" as const, matchId: ownData.matchId };
-          }
-        }
-        if (isFresh(ownData, now)) return { status: "queued" as const, queuedAt: ownData?.createdAt instanceof Timestamp ? ownData.createdAt.toMillis() : now };
+      const ownLockRef = db.collection("chessActivePlayers").doc(user.uid);
+      const candidateRef = candidate ? players.doc(candidate.id) : null;
+      const candidateLockRef = candidate ? db.collection("chessActivePlayers").doc(candidate.id) : null;
+      const [ownSnapshot, ownLockSnapshot, candidateSnapshot, candidateLockSnapshot] = await Promise.all([
+        transaction.get(ownRef),
+        transaction.get(ownLockRef),
+        candidateRef ? transaction.get(candidateRef) : Promise.resolve(null),
+        candidateLockRef ? transaction.get(candidateLockRef) : Promise.resolve(null),
+      ]);
+
+      const ownData = ownSnapshot.data();
+      const ownLockData = ownLockSnapshot.data();
+      const ownMatchId = typeof ownLockData?.matchId === "string"
+        ? ownLockData.matchId
+        : ownData?.status === "matched" && typeof ownData.matchId === "string"
+          ? ownData.matchId
+          : null;
+      const candidateLockData = candidateLockSnapshot?.data();
+      const candidateMatchId = typeof candidateLockData?.matchId === "string"
+        ? candidateLockData.matchId
+        : null;
+
+      const [ownMatchSnapshot, candidateMatchSnapshot] = await Promise.all([
+        ownMatchId ? transaction.get(db.collection("matches").doc(ownMatchId)) : Promise.resolve(null),
+        candidateMatchId ? transaction.get(db.collection("matches").doc(candidateMatchId)) : Promise.resolve(null),
+      ]);
+      const ownMatchActive = Boolean(ownMatchSnapshot?.exists && ownMatchSnapshot.data()?.status === "active");
+      const candidateMatchActive = Boolean(candidateMatchSnapshot?.exists && candidateMatchSnapshot.data()?.status === "active");
+
+      if (ownMatchActive && ownMatchId) {
+        return { status: "matched" as const, matchId: ownMatchId };
       }
 
-      if (candidate) {
-        const candidateRef = players.doc(candidate.id);
-        const candidateSnapshot = await transaction.get(candidateRef);
-        const candidateData = candidateSnapshot.data();
-        if (candidateSnapshot.exists && isFresh(candidateData, now)) {
-          const whiteUid = candidate.id;
-          const blackUid = user.uid;
-          transaction.create(matchRef, {
-            gameId: "chess",
-            mode: body.mode,
-            playerIds: [whiteUid, blackUid],
-            whiteUid,
-            blackUid,
-            turnUid: whiteUid,
-            status: "active",
-            fen: initialFen,
-            pgn: "",
-            moveCount: 0,
-            result: null,
-            createdAt: FieldValue.serverTimestamp(),
-            updatedAt: FieldValue.serverTimestamp(),
-          });
-          transaction.set(candidateRef, {
-            uid: whiteUid,
-            mode: body.mode,
-            status: "matched",
-            matchId: matchRef.id,
-            matchedAt: FieldValue.serverTimestamp(),
-          });
-          transaction.set(ownRef, {
-            uid: user.uid,
-            mode: body.mode,
-            status: "matched",
-            matchId: matchRef.id,
-            matchedAt: FieldValue.serverTimestamp(),
-          });
-          return { status: "matched" as const, matchId: matchRef.id };
-        }
-        if (candidateSnapshot.exists && candidateData?.status === "waiting") {
-          transaction.delete(candidateRef);
-        }
+      if (ownLockSnapshot.exists) transaction.delete(ownLockRef);
+      if (candidateLockSnapshot?.exists && !candidateMatchActive) {
+        transaction.delete(candidateLockRef!);
+      }
+
+      if (isFresh(ownData, now)) {
+        return {
+          status: "queued" as const,
+          queuedAt: ownData?.createdAt instanceof Timestamp ? ownData.createdAt.toMillis() : now,
+        };
+      }
+
+      const candidateData = candidateSnapshot?.data();
+      const candidateIsAvailable = Boolean(
+        candidateSnapshot?.exists &&
+        isFresh(candidateData, now) &&
+        !candidateMatchActive,
+      );
+
+      if (candidate && candidateRef && candidateIsAvailable) {
+        const whiteUid = candidate.id;
+        const blackUid = user.uid;
+        transaction.create(matchRef, {
+          gameId: "chess",
+          mode: body.mode,
+          playerIds: [whiteUid, blackUid],
+          whiteUid,
+          blackUid,
+          turnUid: whiteUid,
+          status: "active",
+          fen: initialFen,
+          pgn: "",
+          moveCount: 0,
+          result: null,
+          createdAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+        transaction.set(candidateRef, {
+          uid: whiteUid,
+          mode: body.mode,
+          status: "matched",
+          matchId: matchRef.id,
+          matchedAt: FieldValue.serverTimestamp(),
+        });
+        transaction.set(ownRef, {
+          uid: user.uid,
+          mode: body.mode,
+          status: "matched",
+          matchId: matchRef.id,
+          matchedAt: FieldValue.serverTimestamp(),
+        });
+        transaction.set(db.collection("chessActivePlayers").doc(whiteUid), {
+          matchId: matchRef.id,
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+        transaction.set(ownLockRef, {
+          matchId: matchRef.id,
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+        return { status: "matched" as const, matchId: matchRef.id };
+      }
+
+      if (candidateSnapshot?.exists && candidateData?.status === "waiting" && !candidateMatchActive) {
+        transaction.delete(candidateRef!);
       }
 
       transaction.set(ownRef, {
