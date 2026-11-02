@@ -109,11 +109,11 @@ export async function POST(request: NextRequest) {
         const candidateRef = players.doc(candidate.id);
         const candidateSnapshot = await transaction.get(candidateRef);
         const candidateData = candidateSnapshot.data();
-        const createdAt = candidateData?.createdAt as Timestamp | undefined;
+        const expiresAt = candidateData?.expiresAt as Timestamp | undefined;
         const fresh = candidateSnapshot.exists &&
           candidateData?.status === "waiting" &&
-          createdAt instanceof Timestamp &&
-          createdAt.toMillis() >= now - QUEUE_TTL_MS;
+          expiresAt instanceof Timestamp &&
+          expiresAt.toMillis() > now;
 
         if (fresh) {
           transaction.create(matchRef, {
