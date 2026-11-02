@@ -5,7 +5,8 @@ const file = path.join(process.cwd(), "data", "games.json");
 const parsed = JSON.parse(fs.readFileSync(file, "utf8"));
 const games = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.games) ? parsed.games : [];
 
-const multiplayerTerms = /multiplayer|co[ -]?op|cooperative|\bversus\b|\bpvp\b|2[ -]?player|two[ -]?player/i;
+const metadataMultiplayerTerms = /multiplayer|co[ -]?op|cooperative|\bversus\b|\bpvp\b|2[ -]?player|two[ -]?player/i;
+const descriptionMultiplayerTerms = /multiplayer|co[ -]?op|cooperative|\bpvp\b|2[ -]?player|two[ -]?player|\bversus\s+(?:another\s+)?(?:player|opponent|friend)\b/i;
 const weakTerms = /\bonline\b|local play/i;
 const onlineTerms = /\bonline\b|\binternet\b|remote|cross[- ]platform/i;
 const localTerms = /\blocal\b|same device|same screen|split[- ]screen|couch|hotseat|pass[- ]and[- ]play/i;
@@ -22,7 +23,7 @@ function matchingLabels(values, pattern) {
 }
 
 function descriptionEvidence(description) {
-  const match = description.match(multiplayerTerms);
+  const match = description.match(descriptionMultiplayerTerms);
   if (!match || match.index === undefined) return null;
   const start = Math.max(0, match.index - 55);
   const end = Math.min(description.length, match.index + match[0].length + 85);
@@ -40,7 +41,7 @@ for (const game of games) {
     ...asArray(game.features),
     ...asArray(game.tags),
   ];
-  const strongLabels = [...new Set(matchingLabels(metadata, multiplayerTerms))];
+  const strongLabels = [...new Set(matchingLabels(metadata, metadataMultiplayerTerms))];
   const weakLabels = [...new Set(matchingLabels(metadata, weakTerms))];
   const description = typeof game.description === "string" ? game.description : "";
   const evidence = descriptionEvidence(description);
