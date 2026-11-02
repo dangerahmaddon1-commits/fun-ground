@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import assert from "node:assert/strict";
 import { Chess } from "chess.js";
 import { isSameChessMoveRequest } from "../src/lib/chess/move-idempotency.mjs";
-import { getRematchRequestDecision } from "../src/lib/chess/rematch-consent.mjs";
+import { getRematchLockDecision, getRematchRequestDecision } from "../src/lib/chess/rematch-consent.mjs";
 
 test("standard starting position has 20 legal moves", () => {
   const game = new Chess();
@@ -121,4 +121,16 @@ test("Chess rematch consent is idempotent and rejects outsiders", () => {
     getRematchRequestDecision(["white", "black"], [], "spectator"),
     { status: "forbidden" },
   );
+});
+
+test("Chess rematch refuses to create a second active match for a locked player", () => {
+  assert.deepEqual(
+    getRematchLockDecision(["white", "black"], ["black"]),
+    { status: "conflict", uid: "black" },
+  );
+});
+
+test("Chess rematch can replace stale locks but rejects invalid player pairs", () => {
+  assert.deepEqual(getRematchLockDecision(["white", "black"], []), { status: "ready" });
+  assert.deepEqual(getRematchLockDecision(["white", "white"], []), { status: "invalid" });
 });
