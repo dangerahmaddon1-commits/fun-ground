@@ -29,6 +29,39 @@ export default function ChessMatchmaking() {
   }, []);
 
   useEffect(() => {
+    if (!user || status !== "idle") return;
+    let active = true;
+    const restoreQueue = async () => {
+      try {
+        const token = await user.getIdToken();
+        for (const candidateMode of ["quick", "ranked"] as const) {
+          const response = await fetch("/api/chess/queue?mode=" + candidateMode, {
+            headers: { Authorization: "Bearer " + token },
+            cache: "no-store",
+          });
+          const data = await response.json();
+          if (!active) return;
+          if (response.ok && data.status === "matched" && typeof data.matchId === "string") {
+            window.location.assign("/chess/match/" + encodeURIComponent(data.matchId));
+            return;
+          }
+          if (response.ok && data.status === "queued") {
+            setMode(candidateMode);
+            setQueuedAt(typeof data.queuedAt === "number" ? data.queuedAt : Date.now());
+            setStatus("queued");
+            setNotice("Your previous matchmaking search has been restored.");
+            return;
+          }
+        }
+      } catch {
+        if (active) setNotice("Could not restore your previous matchmaking search.");
+      }
+    };
+    void restoreQueue();
+    return () => { active = false; };
+  }, [user, status]);
+
+  useEffect(() => {
     if (status !== "queued" || queuedAt === null) return;
     const update = () => setElapsed(Math.max(0, Math.floor((Date.now() - queuedAt) / 1000)));
     update();
@@ -93,7 +126,7 @@ export default function ChessMatchmaking() {
         window.location.assign(`/chess/match/${encodeURIComponent(data.matchId)}`);
         return;
       }
-      setQueuedAt(Date.now());
+      setQueuedAt(typeof data.queuedAt === "number" ? data.queuedAt : Date.now());
       setElapsed(0);
       setStatus("queued");
       setNotice("Searching for another player. You can cancel at any time.");
