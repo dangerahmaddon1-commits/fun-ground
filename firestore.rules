@@ -66,6 +66,10 @@ service cloud.firestore {
       }
     }
 
+    match /matchmakingRateLimits/{userId} {
+      allow read, write: if false;
+    }
+
     match /matches/{matchId} {
       allow read, write: if false;
     }
