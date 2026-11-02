@@ -203,13 +203,18 @@ export async function DELETE(request: NextRequest) {
       if (data?.status === "matched" && typeof data.matchId === "string") {
         const matchSnapshot = await transaction.get(db.collection("matches").doc(data.matchId));
         if (matchSnapshot.exists && ["active", "completed"].includes(String(matchSnapshot.data()?.status))) {
-          return "matched" as const;
+          return { status: "matched" as const, matchId: data.matchId };
         }
       }
       transaction.delete(ref);
       return "cancelled" as const;
     });
-    if (result === "matched") return errorResponse("A Chess match has already started; it cannot be cancelled from the queue.", 409);
+    if (typeof result === "object" && result.status === "matched") {
+      return NextResponse.json({
+        error: "A Chess match has already started; it cannot be cancelled from the queue.",
+        matchId: result.matchId,
+      }, { status: 409 });
+    }
     return NextResponse.json({ status: result });
   } catch (error) {
     console.error("Chess matchmaking cancel error", error);
