@@ -99,9 +99,15 @@ export async function POST(
 
       let chess: Chess;
       try {
-        chess = new Chess(match.fen);
+        if (typeof match.pgn === "string" && match.pgn.trim().length > 0) {
+          chess = new Chess();
+          chess.loadPgn(match.pgn);
+          if (chess.fen() !== match.fen) throw new Error("Saved PGN and FEN do not match.");
+        } else {
+          chess = new Chess(match.fen);
+        }
       } catch {
-        return { error: "Saved Chess position is invalid.", status: 500 as const };
+        return { error: "Saved Chess position or move history is invalid.", status: 500 as const };
       }
 
       const expectedColor = uid === match.whiteUid ? "w" : uid === match.blackUid ? "b" : null;
