@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
         if (ownData?.status === "matched" && typeof ownData.matchId === "string") {
           const existingMatchRef = db.collection("matches").doc(ownData.matchId);
           const existingMatch = await transaction.get(existingMatchRef);
-          if (existingMatch.exists && ["active", "completed"].includes(String(existingMatch.data()?.status))) {
+          if (existingMatch.exists && existingMatch.data()?.status === "active") {
             return { status: "matched" as const, matchId: ownData.matchId };
           }
         }
@@ -170,7 +170,7 @@ export async function GET(request: NextRequest) {
       if (data?.status === "matched" && typeof data.matchId === "string") {
         const matchRef = db.collection("matches").doc(data.matchId);
         const matchSnapshot = await transaction.get(matchRef);
-        if (matchSnapshot.exists && ["active", "completed"].includes(String(matchSnapshot.data()?.status))) {
+        if (matchSnapshot.exists && matchSnapshot.data()?.status === "active") {
           return { status: "matched" as const, matchId: data.matchId };
         }
       }
