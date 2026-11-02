@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "check:catalog": "node scripts/check-catalog.mjs",
-    "report:multiplayer-candidates": "node scripts/report-multiplayer-candidates.mjs"
+    "report:multiplayer-candidates": "node scripts/report-multiplayer-candidates.mjs",
+    "test:chess": "node --test tests/chess-rules.test.mjs"
   },
   "dependencies": {
     "@vercel/analytics": "^1.5.0",
