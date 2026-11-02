@@ -17,6 +17,9 @@ type MatchState = {
   moveCount: number;
   lastMove: { from: Square; to: Square; san: string } | null;
   result: { winnerUid: string | null; reason: string; outcome: "win" | "draw" } | null;
+  rematchStatus?: "waiting" | "created" | null;
+  rematchRequestedBy?: string[];
+  rematchMatchId?: string | null;
 };
 
 const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
@@ -55,7 +58,12 @@ export default function OnlineChessMatch({ matchId }: { matchId: string }) {
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Could not load this match.");
-    setMatch(data as MatchState);
+    const nextMatch = data as MatchState;
+    if (typeof nextMatch.rematchMatchId === "string" && nextMatch.rematchMatchId !== matchId) {
+      window.location.assign("/chess/match/" + encodeURIComponent(nextMatch.rematchMatchId));
+      return;
+    }
+    setMatch(nextMatch);
     setNotice("");
   }, [matchId]);
 
@@ -140,6 +148,31 @@ export default function OnlineChessMatch({ matchId }: { matchId: string }) {
     }
   }
 
+  async function requestRematch() {
+    if (!user || !match || match.status !== "completed" || busy) return;
+    setBusy(true);
+    setNotice("");
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch("/api/chess/matches/" + encodeURIComponent(matchId) + "/rematch", {
+        method: "POST",
+        headers: { Authorization: "Bearer " + token },
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not request a rematch.");
+      if (data.status === "matched" && typeof data.matchId === "string") {
+        window.location.assign("/chess/match/" + encodeURIComponent(data.matchId));
+        return;
+      }
+      setNotice("Rematch requested. Waiting for your opponent to accept.");
+      await refresh(user);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Could not request a rematch.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function resign() {
     if (!user || !match || match.status !== "active" || !window.confirm("Resign this Chess match?")) return;
     setBusy(true);
@@ -219,6 +252,12 @@ export default function OnlineChessMatch({ matchId }: { matchId: string }) {
           {finished && <p>Result: <strong>{match.result?.reason || "completed"}</strong></p>}
           {finished && match.result?.winnerUid && <p>{match.result.winnerUid === user.uid ? "You are the winner." : "Your opponent won."}</p>}
           {!finished && <button type="button" className="secondary-button" onClick={resign} disabled={busy}>Resign</button>}
+          {finished && <div className="chess-rematch-actions">
+            <button type="button" className="primary-button" onClick={requestRematch} disabled={busy || Boolean(match.rematchRequestedBy?.includes(user.uid)) || Boolean(match.rematchMatchId)}>
+              {match.rematchMatchId ? "Opening rematch…" : match.rematchRequestedBy?.includes(user.uid) ? "Rematch requested" : match.rematchRequestedBy?.some(id => id !== user.uid) ? "Accept rematch" : "Request rematch"}
+            </button>
+            {match.rematchRequestedBy?.includes(user.uid) && !match.rematchMatchId && <p>Waiting for your opponent to accept.</p>}
+          </div>}
         </div>
         {notice && <p className="chess-notice" role="status">{notice}</p>}
         <div className="chess-coming-card"><span>RECONNECT SUPPORT</span><strong>Match state is saved</strong><p>Reloading this page restores the latest server-verified board position.</p></div>
