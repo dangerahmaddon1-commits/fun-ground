@@ -52,6 +52,13 @@ service cloud.firestore {
 
     // Competitive data is server-owned. Client SDKs may not read or write
     // queue, match, result, mission, leaderboard, or reward documents.
+    match /chessQueues/{mode} {
+      allow read, write: if false;
+      match /players/{playerId} {
+        allow read, write: if false;
+      }
+    }
+
     match /battleQueues/{queueId} {
       allow read, write: if false;
       match /players/{playerId} {
@@ -72,6 +79,9 @@ service cloud.firestore {
 
     match /matches/{matchId} {
       allow read, write: if false;
+      match /moves/{moveId} {
+        allow read, write: if false;
+      }
     }
 
     match /users/{userId} {
