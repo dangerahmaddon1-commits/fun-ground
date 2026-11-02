@@ -112,8 +112,8 @@ export async function POST(
       let played;
       try {
         played = chess.move({
-          from: body.from,
-          to: body.to,
+          from: body.from as Square,
+          to: body.to as Square,
           ...(body.promotion ? { promotion: body.promotion as "q" | "r" | "b" | "n" } : {}),
         });
       } catch {
@@ -176,7 +176,7 @@ export async function POST(
       };
     });
 
-    if ("error" in outcome) return errorResponse(outcome.error, outcome.status);
+    if ("error" in outcome && typeof outcome.error === "string") return errorResponse(outcome.error, outcome.status ?? 500);
     return NextResponse.json(outcome);
   } catch (error) {
     console.error("Chess move submission error", error);
