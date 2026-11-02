@@ -8,7 +8,7 @@ import { auth, db } from "@/lib/firebase";
 
 const groups = [
   { title: "PLAYER", items: [{ label: "My Profile", href: "/profile" }, { label: "Edit Profile", href: "/profile" }, { label: "My Favorites", href: "/favorites" }, { label: "Recently Played", soon: true }] },
-  { title: "PROGRESS & COMPETITION", items: [{ label: "Achievements", soon: true }, { label: "Tournaments", soon: true }, { label: "Leaderboards", soon: true }, { label: "Player Statistics", soon: true }, { label: "Rewards & Badges", soon: true }] },
+  { title: "PROGRESS & COMPETITION", items: [{ label: "Achievements", soon: true }, { label: "Fun Battles", href: "/battles" }, { label: "Tournaments", soon: true }, { label: "Leaderboards", soon: true }, { label: "Player Statistics", soon: true }, { label: "Rewards & Progress", href: "/rewards" }] },
   { title: "ACCOUNT & HELP", items: [{ label: "Account Settings", soon: true }, { label: "Privacy Settings", soon: true }, { label: "Notifications", soon: true }, { label: "Help & Support", soon: true }] },
 ];
 
