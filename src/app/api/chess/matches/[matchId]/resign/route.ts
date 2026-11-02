@@ -59,6 +59,10 @@ export async function POST(
       if (typeof opponentUid !== "string") {
         return { error: "Chess match participants are invalid.", status: 500 as const };
       }
+      const activeLockRefs = players
+        .filter((playerId): playerId is string => typeof playerId === "string")
+        .map(playerUid => db.collection("chessActivePlayers").doc(playerUid));
+      const activeLocks = await Promise.all(activeLockRefs.map(lockRef => transaction.get(lockRef)));
       const matchResult = {
         winnerUid: opponentUid,
         reason: "resignation",
@@ -78,6 +82,11 @@ export async function POST(
           );
         }
       }
+      activeLocks.forEach((lockSnapshot, index) => {
+        if (lockSnapshot.data()?.matchId === matchId) {
+          transaction.delete(activeLockRefs[index]);
+        }
+      });
       return { status: "completed" as const, result: matchResult };
     });
 
