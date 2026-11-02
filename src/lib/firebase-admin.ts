@@ -1,16 +1,16 @@
 import "server-only";
-import { cert, getApps, initializeApp, type ServiceAccount } from "firebase-admin/app";
+import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 
-function getServiceAccount(): ServiceAccount {
+function getServiceAccount(): { projectId: string; clientEmail: string; privateKey: string } {
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
   if (!raw) throw new Error("Firebase Admin is not configured.");
-  const parsed = JSON.parse(raw) as ServiceAccount;
+  const parsed = JSON.parse(raw) as { projectId?: string; clientEmail?: string; privateKey?: string };
   if (!parsed.projectId || !parsed.clientEmail || !parsed.privateKey) {
     throw new Error("Firebase Admin service account is incomplete.");
   }
-  return parsed;
+  return { projectId: parsed.projectId, clientEmail: parsed.clientEmail, privateKey: parsed.privateKey };
 }
 
 export function getAdminServices() {
