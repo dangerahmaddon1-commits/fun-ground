@@ -39,7 +39,7 @@ export async function GET(
   try {
     const { db } = getAdminServices();
     const snapshot = await db.collection("matches").doc(matchId).get();
-    if (!snapshot.exists) return errorResponse("Chess match not found.", 404);
+    if (!snapshot.exists || snapshot.data()?.gameId !== "chess") return errorResponse("Chess match not found.", 404);
     const match = snapshot.data();
     const players = match?.playerIds;
     if (!Array.isArray(players) || !players.includes(uid)) {
