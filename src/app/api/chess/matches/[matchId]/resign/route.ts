@@ -42,7 +42,7 @@ export async function POST(
     const matchRef = db.collection("matches").doc(matchId);
     const result = await db.runTransaction(async (transaction) => {
       const snapshot = await transaction.get(matchRef);
-      if (!snapshot.exists) return { error: "Chess match not found.", status: 404 as const };
+      if (!snapshot.exists || snapshot.data()?.gameId !== "chess") return { error: "Chess match not found.", status: 404 as const };
       const match = snapshot.data();
       const players = match?.playerIds;
       if (!Array.isArray(players) || !players.includes(uid)) {
