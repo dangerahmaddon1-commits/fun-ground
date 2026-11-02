@@ -2,6 +2,7 @@
 export const competitiveFeatures = Object.freeze({
   activityTracking: process.env.FUN_GROUND_ACTIVITY_TRACKING_ENABLED === "true",
   matchmaking: process.env.FUN_GROUND_MATCHMAKING_ENABLED === "true",
+  chessOnlineMatches: process.env.FUN_GROUND_CHESS_ONLINE_MATCHES_ENABLED === "true",
   rankedMatches: process.env.FUN_GROUND_RANKED_ENABLED === "true",
   dailyMissions: process.env.FUN_GROUND_DAILY_MISSIONS_ENABLED === "true",
   leaderboards: process.env.FUN_GROUND_LEADERBOARDS_ENABLED === "true",
