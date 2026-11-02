@@ -1,6 +1,29 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { competitiveFeatures } from "@/lib/competitive/config";
-export const metadata: Metadata = { title: "Fun Battles", description: "Competitive gaming is being prepared for Fun Ground.", robots: { index: false, follow: true } };
+
+export const metadata: Metadata = {
+  title: "Fun Battles",
+  description: "Explore Fun Ground Chess and upcoming competitive multiplayer modes.",
+  robots: { index: false, follow: true },
+};
+
 export default function BattlesPage() {
-  return <main className="page-container"><div className="eyebrow">FUN GROUND COMPETITIVE</div><h1>Fun Battles</h1><p>Quick Match and Ranked Match are being developed for games with real, tested multiplayer support.</p><p>{competitiveFeatures.matchmaking ? "Matchmaking is enabled for this environment, but no game is currently approved for queue access." : "Matchmaking is not available yet."}</p><section><h2>Quick Match</h2><p>Casual automatic matchmaking for approved multiplayer games.</p><h2>Ranked Match</h2><p>Competitive matchmaking requires verified results and eligible games. Ranked play is currently unavailable.</p></section><p>No entry fees, cash prizes, withdrawals or redeemable rewards are offered here.</p></main>;
+  return <main className="page-container standard-page">
+    <div className="eyebrow">FUN GROUND COMPETITIVE</div>
+    <h1>Fun Battles</h1>
+    <p className="page-intro">Our competitive platform is starting with Fun Ground Chess. More original games will be added over time.</p>
+    <section className="detail-panel" style={{ marginBottom: 20 }}>
+      <div className="eyebrow">FIRST ORIGINAL GAME</div>
+      <h2>♟ Fun Ground Chess</h2>
+      <p>Play against AI in Casual or Training mode, with three difficulty levels. Online human matchmaking is being developed separately and is not available yet.</p>
+      <Link className="primary-button" href="/chess">Play Chess <span>↗</span></Link>
+    </section>
+    <section className="detail-panel">
+      <h2>Online Battles</h2>
+      <p>{competitiveFeatures.matchmaking ? "The matchmaking service is enabled for this environment, but Chess online matches are not ready to open." : "Online matchmaking is not enabled yet."}</p>
+      <p>Quick Match will offer an AI opponent after 3 minutes without finding a human player. Ranked will offer an optional switch to an unranked AI game after 5 minutes. AI games will never affect ranks, leaderboards or tournament rewards.</p>
+      <p>No entry fees, cash prizes, withdrawals or redeemable rewards are offered here.</p>
+    </section>
+  </main>;
 }
