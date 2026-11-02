@@ -8,6 +8,7 @@ const games = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.games) ? pa
 // Generic "online" and "local play" labels are retained separately as weak hints.
 const strongTerms = /multiplayer|co[ -]?op|cooperative|\bversus\b|\bpvp\b|2[ -]?player|two[ -]?player/i;
 const weakTerms = /\bonline\b|local play/i;
+const negativeDescriptionTerms = /\b(?:no|not|without|isn't|is not|doesn't|does not|cannot|can't)\b[^.!?]{0,45}\b(?:multiplayer|co[ -]?op|cooperative|versus|pvp|2[ -]?player|two[ -]?player)\b|\b(?:multiplayer|co[ -]?op|cooperative|versus|pvp|2[ -]?player|two[ -]?player)\b[^.!?]{0,40}\b(?:not supported|unsupported|unavailable|isn't|is not|doesn't|does not)\b|\b(?:single[ -]?player only|solo only)\b/i;
 
 function labels(values = [], pattern = strongTerms) {
   return values
@@ -32,6 +33,11 @@ for (const game of games) {
   const weakLabels = [...new Set(labels(values, weakTerms))];
   const description = typeof game.description === "string" ? game.description : "";
   const evidence = descriptionEvidence(description);
+  const descriptionContradicts = negativeDescriptionTerms.test(description);
+
+  // Do not promote a description-only match when the same description
+  // explicitly says the game has no multiplayer/co-op support.
+  if (descriptionContradicts && strongLabels.length === 0) continue;
 
   if (strongLabels.length > 0 || evidence) {
     candidates.push({
@@ -41,6 +47,7 @@ for (const game of games) {
       weakHints: weakLabels,
       descriptionMatch: Boolean(evidence),
       descriptionEvidence: evidence,
+      descriptionContradicts,
     });
   } else if (weakLabels.length > 0) {
     weakHints.push({ id: game.id, name: game.name, labels: weakLabels });
