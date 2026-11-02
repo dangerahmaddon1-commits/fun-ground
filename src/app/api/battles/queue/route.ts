@@ -95,6 +95,7 @@ export async function POST(request: NextRequest) {
 
     const result = await db.runTransaction(async (transaction) => {
       const own = await transaction.get(ownRef);
+      let expiredMatchRef: FirebaseFirestore.DocumentReference | null = null;
       if (own.exists) {
         const data = own.data();
         if (data?.status === "matched" && typeof data.matchId === "string") {
@@ -111,18 +112,13 @@ export async function POST(request: NextRequest) {
             return { status: "matched" as const, matchId: data.matchId };
           }
           if (existingMatch.exists && matchData?.status === "matched") {
-            transaction.update(existingMatchRef, {
-              status: "expired",
-              expiredAt: FieldValue.serverTimestamp(),
-            });
+            expiredMatchRef = existingMatchRef;
           }
-          transaction.delete(ownRef);
         } else if (data?.status === "waiting") {
           const expiresAt = data.expiresAt as Timestamp | undefined;
           if (expiresAt instanceof Timestamp && expiresAt.toMillis() > now) {
             return { status: "queued" as const };
           }
-          transaction.delete(ownRef);
         }
       }
 
@@ -137,6 +133,12 @@ export async function POST(request: NextRequest) {
           expiresAt.toMillis() > now;
 
         if (fresh) {
+          if (expiredMatchRef) {
+            transaction.update(expiredMatchRef, {
+              status: "expired",
+              expiredAt: FieldValue.serverTimestamp(),
+            });
+          }
           transaction.create(matchRef, {
             gameId: body.gameId,
             mode: body.mode,
@@ -159,6 +161,12 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      if (expiredMatchRef) {
+        transaction.update(expiredMatchRef, {
+          status: "expired",
+          expiredAt: FieldValue.serverTimestamp(),
+        });
+      }
       transaction.set(ownRef, {
         uid, gameId: body.gameId, mode: body.mode, status: "waiting",
         createdAt: Timestamp.fromMillis(now),
