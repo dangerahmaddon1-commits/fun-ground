@@ -15,6 +15,7 @@ The server-side competitive API uses the Firebase Admin SDK. It is deliberately 
 
 - Set `FUN_GROUND_ACTIVITY_TRACKING_ENABLED=true` only after the Admin credentials and private Firestore rules are verified in Preview.
 - Set `NEXT_PUBLIC_FG_ACTIVITY_TRACKING_ENABLED=true` only as a client-side request hint. It does not enable the feature; the server flag remains authoritative.
+- Before enabling activity tracking for players, finalize its data-retention period and deletion process, and ensure the privacy policy accurately describes the collection. The current policy states that tracking is disabled by default and must be updated before any live activation.
 - Activity sessions store only the authenticated UID, game ID, server start/end timestamps and a capped duration. They do not record scores, winners or rewards.
 
 ## Matchmaking requirements
