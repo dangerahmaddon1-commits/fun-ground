@@ -68,3 +68,14 @@ test("chess board keeps all 64 squares equal and square-shaped", () => {
   assert.match(boardRule[1], /grid-template-rows:\s*repeat\(8,minmax\(0,1fr\)\)/);
   assert.match(boardRule[1], /aspect-ratio:\s*1/);
 });
+
+
+test("reloading PGN preserves move history and threefold repetition", () => {
+  const game = new Chess();
+  for (const move of ["Nf3", "Nf6", "Ng1", "Ng8", "Nf3", "Nf6", "Ng1", "Ng8"]) game.move(move);
+  const restored = new Chess();
+  restored.loadPgn(game.pgn());
+  assert.equal(restored.fen(), game.fen());
+  assert.equal(restored.history().length, game.history().length);
+  assert.equal(restored.isThreefoldRepetition(), true);
+});
