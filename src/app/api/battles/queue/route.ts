@@ -75,7 +75,12 @@ export async function POST(request: NextRequest) {
         if (data?.status === "matched" && typeof data.matchId === "string") {
           return { status: "matched" as const, matchId: data.matchId };
         }
-        if (data?.status === "waiting") return { status: "queued" as const };
+        if (data?.status === "waiting") {
+          const expiresAt = data.expiresAt as Timestamp | undefined;
+          if (expiresAt instanceof Timestamp && expiresAt.toMillis() > now) {
+            return { status: "queued" as const };
+          }
+        }
       }
 
       if (candidate) {
