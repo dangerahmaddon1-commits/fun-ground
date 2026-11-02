@@ -79,3 +79,9 @@ test("reloading PGN preserves move history and threefold repetition", () => {
   assert.equal(restored.history().length, game.history().length);
   assert.equal(restored.isThreefoldRepetition(), true);
 });
+
+
+test("detects a claimable fifty-move draw", () => {
+  const game = new Chess("7k/8/8/8/8/8/8/R6K w - - 100 51");
+  assert.equal(game.isDrawByFiftyMoves(), true);
+});
