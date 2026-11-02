@@ -159,7 +159,7 @@ export default function ChessGame() {
           <div className="chess-board" role="grid" aria-label="Chess board">
             {game.board().map((row, rowIndex) => row.map((piece, colIndex) => {
               const square = `${files[colIndex]}${8 - rowIndex}` as Square;
-              const isLight = (rowIndex + colIndex) % 2 === 0;
+              const isLight = (rowIndex + colIndex) % 2 === 1;
               const isSelected = selected === square;
               const isTarget = legalTargets.includes(square);
               return <button
