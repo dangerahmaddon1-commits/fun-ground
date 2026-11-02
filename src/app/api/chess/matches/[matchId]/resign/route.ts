@@ -71,6 +71,13 @@ export async function POST(
         completedAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
       });
+      if (match?.mode === "quick" || match?.mode === "ranked") {
+        for (const playerUid of players) {
+          transaction.delete(
+            db.collection("chessQueues").doc(match.mode).collection("players").doc(playerUid),
+          );
+        }
+      }
       return { status: "completed" as const, result: matchResult };
     });
 
