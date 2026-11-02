@@ -29,6 +29,12 @@ jobs:
         run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
       - name: Apply compatible dependency security patches
         run: npm audit fix --package-lock-only --ignore-scripts
+      - name: Upload resolved lockfile for release review
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-lock-review
+          path: package-lock.json
+          retention-days: 1
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
       - name: Audit dependency vulnerabilities
