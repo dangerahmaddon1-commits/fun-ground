@@ -1,4 +1,6 @@
 import test from "node:test";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import assert from "node:assert/strict";
 import { Chess } from "chess.js";
 
@@ -54,4 +56,15 @@ test("detects threefold repetition", () => {
 test("detects insufficient mating material", () => {
   const game = new Chess("8/8/8/8/8/8/4k3/7K w - - 0 1");
   assert.equal(game.isInsufficientMaterial(), true);
+});
+
+
+test("chess board keeps all 64 squares equal and square-shaped", () => {
+  const cssPath = fileURLToPath(new URL("../src/app/globals.css", import.meta.url));
+  const css = readFileSync(cssPath, "utf8");
+  const boardRule = css.match(/\.chess-board\s*\{([^}]+)\}/);
+  assert.ok(boardRule, "chess board CSS rule exists");
+  assert.match(boardRule[1], /grid-template-columns:\s*repeat\(8,minmax\(0,1fr\)\)/);
+  assert.match(boardRule[1], /grid-template-rows:\s*repeat\(8,minmax\(0,1fr\)\)/);
+  assert.match(boardRule[1], /aspect-ratio:\s*1/);
 });
