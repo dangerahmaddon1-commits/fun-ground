@@ -103,8 +103,8 @@ export default function ChessMatchmaking() {
     }
   }
 
-  async function leaveQueue() {
-    if (!user) return;
+  async function leaveQueue(): Promise<boolean> {
+    if (!user) return false;
     setStatus("busy");
     try {
       const token = await user.getIdToken();
@@ -118,20 +118,22 @@ export default function ChessMatchmaking() {
         if (typeof data.matchId === "string") window.location.assign(`/chess/match/${encodeURIComponent(data.matchId)}`);
         else setNotice(data.error || "A match has already started. Reload to open it.");
         setStatus("queued");
-        return;
+        return false;
       }
       if (!response.ok) throw new Error(data.error || "Could not leave matchmaking.");
       setStatus("idle");
       setQueuedAt(null);
       setNotice("You left the matchmaking queue.");
+      return true;
     } catch (error) {
       setStatus("queued");
       setNotice(error instanceof Error ? error.message : "Could not leave matchmaking.");
+      return false;
     }
   }
 
   async function switchToAi() {
-    await leaveQueue();
+    if (!await leaveQueue()) return;
     setNotice(mode === "ranked"
       ? "Switched to an unranked AI game. This game will not affect your rank or rewards."
       : "Switched to a casual AI game.");
