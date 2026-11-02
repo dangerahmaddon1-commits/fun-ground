@@ -37,6 +37,8 @@ jobs:
           retention-days: 1
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
+      - name: Run Chess rules tests
+        run: npm run test:chess
       - name: Audit dependency vulnerabilities
         shell: bash
         run: |
