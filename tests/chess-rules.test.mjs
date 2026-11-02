@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import assert from "node:assert/strict";
 import { Chess } from "chess.js";
 import { isSameChessMoveRequest } from "../src/lib/chess/move-idempotency.mjs";
+import { getRematchRequestDecision } from "../src/lib/chess/rematch-consent.mjs";
 
 test("standard starting position has 20 legal moves", () => {
   const game = new Chess();
@@ -101,4 +102,23 @@ test("rejects reuse of a Chess move ID for a different move", () => {
   assert.equal(isSameChessMoveRequest(previous, "player-1", { from: "e2", to: "e3" }), false);
   assert.equal(isSameChessMoveRequest(previous, "player-2", { from: "e2", to: "e4" }), false);
   assert.equal(isSameChessMoveRequest(previous, "player-1", { from: "e2", to: "e4", promotion: "q" }), false);
+});
+
+
+test("Chess rematch requires both original players to consent", () => {
+  const first = getRematchRequestDecision(["white", "black"], [], "white");
+  assert.deepEqual(first, { status: "waiting", requestedBy: ["white"] });
+  const second = getRematchRequestDecision(["white", "black"], first.requestedBy, "black");
+  assert.deepEqual(second, { status: "ready", requestedBy: ["white", "black"] });
+});
+
+test("Chess rematch consent is idempotent and rejects outsiders", () => {
+  assert.deepEqual(
+    getRematchRequestDecision(["white", "black"], ["white"], "white"),
+    { status: "waiting", requestedBy: ["white"] },
+  );
+  assert.deepEqual(
+    getRematchRequestDecision(["white", "black"], [], "spectator"),
+    { status: "forbidden" },
+  );
 });
