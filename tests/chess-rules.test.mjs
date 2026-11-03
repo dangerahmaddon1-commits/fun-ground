@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import assert from "node:assert/strict";
 import { Chess } from "chess.js";
 import { isSameChessMoveRequest } from "../src/lib/chess/move-idempotency.mjs";
-import { getRematchLockDecision, getRematchRequestDecision } from "../src/lib/chess/rematch-consent.mjs";
+import { getDrawOfferDecision, getRematchLockDecision, getRematchRequestDecision } from "../src/lib/chess/rematch-consent.mjs";
 
 test("standard starting position has 20 legal moves", () => {
   const game = new Chess();
@@ -165,4 +165,25 @@ test("Advanced starter AI takes an immediate checkmate when available", async ()
   assert.ok(move);
   game.move({ from: move.from, to: move.to, ...(move.promotion ? { promotion: move.promotion } : {}) });
   assert.equal(game.isCheckmate(), true);
+});
+
+
+test("draw offer can be offered and accepted only by the other participant", () => {
+  assert.deepEqual(getDrawOfferDecision(["white", "black"], null, "white", "offer"), {
+    status: "offered", offer: { byUid: "white" },
+  });
+  assert.deepEqual(getDrawOfferDecision(["white", "black"], { byUid: "white" }, "black", "accept"), { status: "accepted" });
+});
+
+test("draw offer can be declined or cancelled by the correct participant", () => {
+  assert.deepEqual(getDrawOfferDecision(["white", "black"], { byUid: "white" }, "black", "decline"), { status: "declined" });
+  assert.deepEqual(getDrawOfferDecision(["white", "black"], { byUid: "white" }, "white", "cancel"), { status: "cancelled" });
+});
+
+test("draw offer rejects outsiders, self-acceptance and invalid transitions", () => {
+  assert.deepEqual(getDrawOfferDecision(["white", "black"], null, "spectator", "offer"), { status: "forbidden" });
+  assert.deepEqual(getDrawOfferDecision(["white", "black"], { byUid: "white" }, "white", "accept"), { status: "conflict" });
+  assert.deepEqual(getDrawOfferDecision(["white", "black"], null, "black", "accept"), { status: "conflict" });
+  assert.deepEqual(getDrawOfferDecision(["white", "black"], { byUid: "white" }, "black", "offer"), { status: "conflict" });
+  assert.deepEqual(getDrawOfferDecision(["white", "black"], null, "black", "invalid"), { status: "invalid" });
 });
