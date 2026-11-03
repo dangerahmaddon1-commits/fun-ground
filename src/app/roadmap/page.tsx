@@ -38,12 +38,12 @@ const stages = [
     items: ["Keep improving browsing and mobile usability", "Make game discovery clearer", "Refine the experience as we learn from players"],
   },
   {
-    status: "planned",
-    label: "Planned",
+    status: "progress",
+    label: "In development — v0.3.0",
     icon: "🏆",
-    title: "Competitive gaming",
-    description: "We're exploring ways to bring players together around games that genuinely support multiplayer.",
-    items: ["A dedicated competitive area", "Tournament information and standings", "Free Fire community tournament events"],
+    title: "Fun Battles & player progression",
+    description: "We're building competitive features around individually reviewed games, with fair matchmaking and server-verified results where supported.",
+    items: ["Quick Match and Ranked Match for approved games", "Game capability labels and session activity", "Daily missions, XP, levels and competitive leaderboards", "Battle and rewards pages with unavailable features kept disabled"],
   },
   {
     status: "future",
