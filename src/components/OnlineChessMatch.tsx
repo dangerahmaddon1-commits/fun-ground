@@ -20,6 +20,7 @@ type MatchState = {
   rematchStatus?: "waiting" | "created" | null;
   rematchRequestedBy?: string[];
   rematchMatchId?: string | null;
+  drawOffer?: { byUid: string; createdAt?: number | null } | null;
 };
 
 const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
@@ -177,6 +178,30 @@ export default function OnlineChessMatch({ matchId }: { matchId: string }) {
     }
   }
 
+  async function updateDrawOffer(action: "offer" | "accept" | "decline" | "cancel") {
+    if (!user || !match || match.status !== "active" || busy) return;
+    setBusy(true);
+    setNotice("");
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch("/api/chess/matches/" + encodeURIComponent(matchId), {
+        method: "POST",
+        headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not update the draw offer.");
+      await refresh(user);
+      if (data.status === "accepted") setNotice("Draw agreed. The match is complete.");
+      else if (data.status === "offered") setNotice("Draw offer sent to your opponent.");
+      else if (data.status === "declined") setNotice("Draw offer declined.");
+      else setNotice("Your draw offer was cancelled.");
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Could not update the draw offer.");
+      try { await refresh(user); } catch {}
+    } finally { setBusy(false); }
+  }
+
   async function resign() {
     if (!user || !match || match.status !== "active" || !window.confirm("Resign this Chess match?")) return;
     setBusy(true);
@@ -255,7 +280,17 @@ export default function OnlineChessMatch({ matchId }: { matchId: string }) {
           <p>Match status: <strong>{match.status}</strong></p>
           {finished && <p>Result: <strong>{match.result?.reason || "completed"}</strong></p>}
           {finished && match.result?.winnerUid && <p>{match.result.winnerUid === user.uid ? "You are the winner." : "Your opponent won."}</p>}
-          {!finished && <button type="button" className="secondary-button" onClick={resign} disabled={busy}>Resign</button>}
+          {!finished && <div className="chess-rematch-actions">
+            {match.drawOffer?.byUid && match.drawOffer.byUid !== user.uid ? <>
+              <p>Your opponent offered a draw.</p>
+              <button type="button" className="primary-button" onClick={() => void updateDrawOffer("accept")} disabled={busy}>Accept draw</button>
+              <button type="button" className="secondary-button" onClick={() => void updateDrawOffer("decline")} disabled={busy}>Decline draw</button>
+            </> : match.drawOffer?.byUid === user.uid ? <>
+              <p>Waiting for your opponent to respond.</p>
+              <button type="button" className="secondary-button" onClick={() => void updateDrawOffer("cancel")} disabled={busy}>Cancel draw offer</button>
+            </> : <button type="button" className="secondary-button" onClick={() => void updateDrawOffer("offer")} disabled={busy}>Offer draw</button>}
+            <button type="button" className="secondary-button" onClick={resign} disabled={busy}>Resign</button>
+          </div>}
           {finished && <div className="chess-rematch-actions">
             <button type="button" className="primary-button" onClick={requestRematch} disabled={busy || Boolean(match.rematchRequestedBy?.includes(user.uid)) || Boolean(match.rematchMatchId)}>
               {match.rematchMatchId ? "Opening rematch…" : match.rematchRequestedBy?.includes(user.uid) ? "Rematch requested" : match.rematchRequestedBy?.some(id => id !== user.uid) ? "Accept rematch" : "Request rematch"}
