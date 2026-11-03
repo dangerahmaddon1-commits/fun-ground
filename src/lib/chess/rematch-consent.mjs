@@ -40,3 +40,29 @@ export function getRematchLockDecision(playerIds, activeLockOwners) {
     ? { status: "conflict", uid: active }
     : { status: "ready" };
 }
+
+
+/**
+ * Validate an explicit draw-offer action for a two-player Chess match.
+ * @param {unknown} playerIds
+ * @param {{byUid?: unknown} | null | undefined} currentOffer
+ * @param {string} uid
+ * @param {unknown} action
+ */
+export function getDrawOfferDecision(playerIds, currentOffer, uid, action) {
+  if (!Array.isArray(playerIds) || playerIds.length !== 2
+    || !playerIds.every((id) => typeof id === "string" && id.length > 0)
+    || new Set(playerIds).size !== 2
+    || !playerIds.includes(uid)) return { status: "forbidden" };
+  if (!["offer", "accept", "decline", "cancel"].includes(action)) return { status: "invalid" };
+  const offerBy = typeof currentOffer?.byUid === "string" && playerIds.includes(currentOffer.byUid)
+    ? currentOffer.byUid
+    : null;
+  if (action === "offer") {
+    return offerBy && offerBy !== uid ? { status: "conflict" } : { status: "offered", offer: { byUid: uid } };
+  }
+  if (!offerBy) return { status: "conflict" };
+  if (action === "accept") return offerBy === uid ? { status: "conflict" } : { status: "accepted" };
+  if (action === "decline") return offerBy === uid ? { status: "conflict" } : { status: "declined" };
+  return offerBy === uid ? { status: "cancelled" } : { status: "conflict" };
+}
